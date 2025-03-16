@@ -32,31 +32,31 @@ namespace service {
         if (deviceCount <= 0) {
             return "No devices found. Please check the network connection.";
         }
-    
+
         // 如果设备未连接，尝试连接
         INT32_T result = OpenStream(devID, nullptr, nullptr, nullptr, nullptr, WORKING_MODE::H264_MODE, nullptr);
         if (result != GUIDEIR_OK) {
             return "Failed to connect to the device.";
         }
-    
+
         // 获取当前时间
         auto now = std::chrono::system_clock::now();
         std::time_t now_time = std::chrono::system_clock::to_time_t(now);
         std::tm now_tm = *std::localtime(&now_time);
-    
+
         // 生成文件名，格式为：capture_YYYYMMDD_HHMMSS.jpg
         std::ostringstream oss;
-        oss << "images/capture_"
+        oss << "D:/images/capture_"
             << std::put_time(&now_tm, "%Y%m%d_%H%M%S")
             << ".jpg";
         std::string imgPath = oss.str();
-    
+
         // 确保目录存在
-        std::filesystem::path dirPath = "images";
+        std::filesystem::path dirPath = "D:/images";
         if (!std::filesystem::exists(dirPath)) {
             std::filesystem::create_directory(dirPath);
         }
-    
+
         // 调用拍摄功能
         result = TakeScreenshotEx(devID, imgPath.c_str(), IMG_TYPE::ONLY_JPG);
         if (result == GUIDEIR_OK) {
@@ -104,52 +104,52 @@ namespace service {
     std::string ServiceManager::handleVideoRequest(const crow::request &req) {
         // 默认设备 ID
         INT32_T devID = 1;
-    
+
         // 检查设备是否存在
         INT32_T deviceCount = GetDeviceNum();
         if (deviceCount <= 0) {
             return "No devices found. Please check the network connection.";
         }
-    
+
         // 如果设备未连接，尝试连接
         INT32_T result = OpenStream(devID, nullptr, nullptr, nullptr, nullptr, WORKING_MODE::H264_MODE, nullptr);
         if (result != GUIDEIR_OK) {
             return "Failed to connect to the device.";
         }
-    
+
         // 获取当前时间
         auto now = std::chrono::system_clock::now();
         std::time_t now_time = std::chrono::system_clock::to_time_t(now);
         std::tm now_tm = *std::localtime(&now_time);
-    
+
         // 生成视频文件路径，格式为：videos/video_YYYYMMDD_HHMMSS.mp4
         std::ostringstream oss;
-        oss << "videos/video_"
+        oss << "D:/videos/video_"
             << std::put_time(&now_tm, "%Y%m%d_%H%M%S")
             << ".mp4";
         std::string videoPath = oss.str();
-    
+
         // 确保目录存在
-        std::filesystem::path dirPath = "videos";
+        std::filesystem::path dirPath = "D:/videos";
         if (!std::filesystem::exists(dirPath)) {
             std::filesystem::create_directory(dirPath);
         }
-    
+
         // 启动视频录制
         result = StartRecordVideo(devID, videoPath.c_str(), GD_MEDIA_TYPE::MP4_MEDIA);
         if (result != GUIDEIR_OK) {
             return "Failed to start video recording.";
         }
-    
+
         // 模拟录制一段时间（例如 10 秒）
         std::this_thread::sleep_for(std::chrono::seconds(10));
-    
+
         // 停止视频录制
         result = StopRecordVideo(devID);
         if (result != GUIDEIR_OK) {
             return "Failed to stop video recording.";
         }
-    
+
         return std::string("Video recorded successfully: ") + videoPath;
     }
 }// namespace service

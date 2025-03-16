@@ -58,7 +58,7 @@ namespace routes {
             ([this](const crow::request &req) {
                 return serviceManager.handleCaptureRequest(req);
             });
-            helpDocManager.registerHelpDoc("/capture", "Capture route", {"GET"}, "{}", "{\"status\": \"success\", \"path\": \"/myprojects/Demo/capture.jpg\"}", {{500, "Internal Server Error"}}, "admin", VERSIONS, "Capture route description");
+            helpDocManager.registerHelpDoc("/capture", "Capture route and return file path", {"GET"}, "{}", "{\"status\": \"success\", \"path\": \"/myprojects/Demo/capture.jpg\"}", {{500, "Internal Server Error"}}, "admin", VERSIONS, "Capture route description");
         
             //注册 /video路由
             CROW_ROUTE(app,"/video")([this](const crow::request&req){
@@ -78,7 +78,7 @@ namespace routes {
             crow::logger::setHandler(&logger);
             bindHttpRoutes();
             bindWebsocketRoutes();
-            app.bindaddr("0.0.0.0").port(8081).multithreaded().run();
+            app.bindaddr("127.0.0.1").port(8081).multithreaded().run();
         }
 
         std::string getRouteHelp() {
