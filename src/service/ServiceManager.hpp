@@ -8,5 +8,6 @@ namespace service {
         std::string handleInfoRequest(const crow::request &req);
         std::string handleCaptureRequest(const crow::request &req);
         std::string handleFileOperationRequest(const crow::request &req);
+        std::string handleRoot();
     };
 }// namespace service

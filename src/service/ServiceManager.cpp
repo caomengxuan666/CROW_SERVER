@@ -6,12 +6,12 @@
 #include <GaoDe/porting_file.h>
 
 namespace service {
-    std::string ServiceManager::handleExampleRequest(const crow::request& req) {
+    std::string ServiceManager::handleExampleRequest(const crow::request &req) {
         // 处理/example请求的逻辑
         return "Example response";
     }
 
-    std::string ServiceManager::handleInfoRequest(const crow::request& req) {
+    std::string ServiceManager::handleInfoRequest(const crow::request &req) {
         auto client_ip = req.remote_ip_address;
         auto current_time = std::chrono::system_clock::now();
         auto time_str = std::chrono::system_clock::to_time_t(current_time);
@@ -21,7 +21,7 @@ namespace service {
     }
 
     // 实现新的处理函数
-    std::string ServiceManager::handleCaptureRequest(const crow::request& req) {
+    std::string ServiceManager::handleCaptureRequest(const crow::request &req) {
         // 获取设备ID，默认为1（可以根据实际需求从请求参数中获取）
         INT32_T devID = 1;
 
@@ -40,7 +40,7 @@ namespace service {
         }
     }
 
-    std::string ServiceManager::handleFileOperationRequest(const crow::request& req) {
+    std::string ServiceManager::handleFileOperationRequest(const crow::request &req) {
         // 获取请求参数中的文件路径
         std::string filePath = req.url_params.get("file");
         if (filePath.empty()) {
@@ -66,8 +66,13 @@ namespace service {
         porting_file_close(fileHandle);
 
         // 构造返回结果
-        buffer[bytesRead] = '\0'; // 确保字符串以 null 结尾
-        std::string fileContent(reinterpret_cast<char*>(buffer));
+        buffer[bytesRead] = '\0';// 确保字符串以 null 结尾
+        std::string fileContent(reinterpret_cast<char *>(buffer));
         return "File content:\n" + fileContent;
     }
-}
+
+    std::string ServiceManager::handleRoot() {
+        return "<html><body><h1>Link Successfully to server!</h1><p>You can use route 'help' to get help!</p></body></html>";
+    }
+
+}// namespace service
