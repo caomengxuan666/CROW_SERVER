@@ -11,7 +11,15 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 if (WIN32)
     set(CMAKE_TOOLCHAIN_FILE "D:/vcpkg/scripts/buildsystems/vcpkg.cmake")
     #设置cmake-prefix_path
-    set(CMAKE_PREFIX_PATH "D:/vcpkg/installed/x64-mingw-dynamic")
+    set(CMAKE_PREFIX_PATH "D:/vcpkg/installed/x64-windows")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_WIN32_WINNT=0x0A00")
+
+    if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MDd")
+    else ()
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MD")
+    endif ()
+
 endif ()
 
 # 查找crow库

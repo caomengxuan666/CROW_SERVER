@@ -2,7 +2,7 @@
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   set(GAODESDK GuideSDK MeasureStream ParseGWImage avcodec avformat avutil swscale usb-1.0 va-drm va-x11)
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-  set(GAODESDK GuideSDK GFileAnalysis PocoFoundation PocoJSON avcodec-58 avdevice-58 avfilter-7 avformat-58 avutil-56 swresample-3 swscale-5)
+  set(GAODESDK GuideSDK GFileAnalysis)
 endif()
 
 # 添加共享库
@@ -65,7 +65,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   endforeach()
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
   foreach(LIB ${GAODESDK})
-    target_link_libraries(ServiceManager PUBLIC ${SDK_PREFIX}${SDK_SUBDIR}/${LIB}.dll)
+    target_link_libraries(ServiceManager PUBLIC ${SDK_PREFIX}${SDK_SUBDIR}/${LIB}.lib)
   endforeach()
   # 根据构建类型选择正确的 PortingMod 库链接
   if(CMAKE_BUILD_TYPE STREQUAL "Debug")
@@ -75,6 +75,7 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
   endif()
   # 添加对 C 标准库和 C++ 标准库的链接
   target_link_libraries(ServiceManager PUBLIC msvcrt msvcprt)
+
 endif ()
 
 # 安装规则
