@@ -11,3 +11,5 @@
 /bin
 
 *pyc
+
+/.pytest_cache
