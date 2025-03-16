@@ -1,0 +1,13 @@
+/dll
+
+/lib
+
+/build
+
+/.vscode
+
+/.cache
+
+/bin
+
+*pyc
