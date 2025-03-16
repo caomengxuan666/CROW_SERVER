@@ -4,7 +4,7 @@
  * @Author       : caomengxuan666 2507560089@qq.com
  * @Version      : 0.0.1
  * @LastEditors  : caomengxuan666 2507560089@qq.com
- * @LastEditTime : 2025-03-16 11:21:39
+ * @LastEditTime : 2025-03-16 16:36:32
  * @Copyright    : PESONAL DEVELOPER CMX., Copyright (c) 2025.
 **/
 
@@ -14,6 +14,8 @@
 #include "HelpDocManager.hpp"
 #include "logHandler.hpp"
 #include "version.h"
+#include <crow/app.h>
+#include <crow/http_request.h>
 
 namespace routes {
     class RouteManager {
@@ -57,6 +59,11 @@ namespace routes {
                 return serviceManager.handleCaptureRequest(req);
             });
             helpDocManager.registerHelpDoc("/capture", "Capture route", {"GET"}, "{}", "{\"status\": \"success\", \"path\": \"/myprojects/Demo/capture.jpg\"}", {{500, "Internal Server Error"}}, "admin", VERSIONS, "Capture route description");
+        
+            //注册 /video路由
+            CROW_ROUTE(app,"/video")([this](const crow::request&req){
+                return serviceManager.handleVideoRequest(req);
+            });
         }
 
         void bindWebsocketRoutes() {
