@@ -1,45 +1,45 @@
-/**
- * @FilePath     : /crow_server/src/controller/HelpDocManager.hpp
- * @Description  :  
- * @Author       : caomengxuan666 2507560089@qq.com
- * @Version      : 0.0.1
- * @LastEditors  : caomengxuan666 2507560089@qq.com
- * @LastEditTime : 2025-03-16 11:19:16
- * @Copyright    : PESONAL DEVELOPER CMX., Copyright (c) 2025.
-**/
-#pragma once
-
-#include "../repository/RepositoryManager.hpp"// 引入 RepositoryManager
-
+#include "../repository/RepositoryManager.hpp" // 引入 RepositoryManager
 
 class HelpDocManager {
 private:
-    repository::RepositoryManager &repositoryManager;
+    static void registerHelpDocImpl(
+            const char* url,
+            Protocol protocol, // 添加 protocol 参数
+            const char* description,
+            const std::vector<std::string>& httpMethods,
+            const char* requestExample,
+            const char* responseExample,
+            const std::map<int, std::string>& errorCodes,
+            const char* permissions,
+            const char* version,
+            const char* notes) {
+        HelpDoc doc;
+        doc.url = url;
+        doc.protocol = protocol; // 设置 protocol 字段
+        doc.description = description;
+        doc.httpMethods = httpMethods;
+        doc.requestExample = requestExample;
+        doc.responseExample = responseExample;
+        doc.errorCodes = errorCodes;
+        doc.permissions = permissions;
+        doc.version = version;
+        doc.notes = notes;
+
+        repository::RepositoryManager::registRouteHelp(doc); // 使用静态方法
+    }
 
 public:
-    HelpDocManager(repository::RepositoryManager &repoManager) : repositoryManager(repoManager) {}
-
-    void registerHelpDoc(
-            std::string url,
-            std::string description,
-            std::vector<std::string> httpMethods,
-            std::string requestExample,
-            std::string responseExample,
-            std::map<int, std::string> errorCodes,
-            std::string permissions,
-            std::string version,
-            std::string notes) {
-        HelpDoc doc;
-        doc.url = std::move(url);
-        doc.description = std::move(description);
-        doc.httpMethods = std::move(httpMethods);
-        doc.requestExample = std::move(requestExample);
-        doc.responseExample = std::move(responseExample);
-        doc.errorCodes = std::move(errorCodes);
-        doc.permissions = std::move(permissions);
-        doc.version = std::move(version);
-        doc.notes = std::move(notes);
-
-        repositoryManager.registRouteHelp(doc);
+    static void registerHelpDoc(
+            const char* url,
+            Protocol protocol, // 添加 protocol 参数
+            const char* description,
+            const std::vector<std::string>& httpMethods,
+            const char* requestExample,
+            const char* responseExample,
+            const std::map<int, std::string>& errorCodes,
+            const char* permissions,
+            const char* version,
+            const char* notes) {
+        registerHelpDocImpl(url, protocol, description, httpMethods, requestExample, responseExample, errorCodes, permissions, version, notes);
     }
 };

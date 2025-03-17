@@ -1,10 +1,10 @@
 /**
- * @FilePath     : /crow_server/src/logHandler.hpp
+ * @FilePath     : /crow_server/src/controller/logHandler.hpp
  * @Description  :  消除crow内部日志库本身的时差问题
  * @Author       : caomengxuan666 2507560089@qq.com
  * @Version      : 0.0.1
  * @LastEditors  : caomengxuan666 2507560089@qq.com
- * @LastEditTime : 2025-03-15 19:00:57
+ * @LastEditTime : 2025-03-17 15:19:48
  * @Copyright    : PESONAL DEVELOPER CMX., Copyright (c) 2025.
 **/
 //获取指定格式的时间字符串
@@ -21,6 +21,7 @@ inline std::string get_now_time(std::string format = "%Y-%m-%d %H:%M:%S") {
     std::string stime(buffer);
     return stime;
 }
+
 //设置log记录器
 class CustomLogger : public crow::ILogHandler {
 public:

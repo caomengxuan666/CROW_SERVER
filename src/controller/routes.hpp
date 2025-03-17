@@ -4,74 +4,81 @@
  * @Author       : caomengxuan666 2507560089@qq.com
  * @Version      : 0.0.1
  * @LastEditors  : caomengxuan666 2507560089@qq.com
- * @LastEditTime : 2025-03-16 16:36:32
+ * @LastEditTime : 2025-03-17 17:12:46
  * @Copyright    : PESONAL DEVELOPER CMX., Copyright (c) 2025.
 **/
-
-#pragma once
-
 #include "../service/ServiceManager.hpp"
 #include "HelpDocManager.hpp"
 #include "logHandler.hpp"
 #include "version.h"
 #include <crow/app.h>
 #include <crow/http_request.h>
+#include <crow/websocket.h>
+
 
 namespace routes {
     class RouteManager {
     private:
         crow::SimpleApp app;
-        service::ServiceManager serviceManager;
-        repository::RepositoryManager repositoryManager;
-        HelpDocManager helpDocManager;
 
         void bindHttpRoutes() {
             // 注册根路由
             CROW_ROUTE(app, "/")
-            ([this] {
-                return serviceManager.handleRoot();
+            ([this] {// 捕获 this 指针
+                return service::HttpServiceManager::handleRoot();
             });
-            helpDocManager.registerHelpDoc("/", "Root route", {"GET"}, "{}", "{}", {}, "public", VERSIONS, "Root route description");
-
-            // 注册 /example 路由
-            CROW_ROUTE(app, "/example")
-            ([this](const crow::request &req) {
-                return serviceManager.handleExampleRequest(req);
-            });
-            helpDocManager.registerHelpDoc("/example", "Example route", {"GET"}, "{\"param1\": \"value1\"}", "{\"status\": \"success\", \"data\": {\"key\": \"value\"}}", {{400, "Bad Request"}}, "user", VERSIONS, "Example route description");
+            HelpDocManager::registerHelpDoc("/", Protocol::HTTP, "Root route", {"GET"}, "{}", "{}", {}, "public", VERSIONS, "Root route description");
 
             // 注册/help 路由
             CROW_ROUTE(app, "/help")
-            ([this] {
+            ([this] {// 捕获 this 指针
                 return getRouteHelp();
             });
+            HelpDocManager::registerHelpDoc("/help", Protocol::HTTP, "Help route", {"GET"}, "{}", "{}", {}, "public", VERSIONS, "Help route description");
 
             // 注册 /info 路由
             CROW_ROUTE(app, "/info")
-            ([this](const crow::request &req) {
-                return serviceManager.handleInfoRequest(req);
+            ([](const crow::request &req) {
+                return service::HttpServiceManager::handleInfoRequest(req);
             });
-            helpDocManager.registerHelpDoc("/info", "Info route", {"GET"}, "{}", "{\"client_ip\": \"127.0.0.1\", \"time\": \"Mon Jan  1 00:00:00 2000\"}", {}, "user", VERSIONS, "Info route description");
+            HelpDocManager::registerHelpDoc("/info", Protocol::HTTP, "Info route", {"GET"}, "{}", "{\"client_ip\": \"127.0.0.1\", \"time\": \"Mon Jan  1 00:00:00 2000\"}", {}, "user", VERSIONS, "Info route description");
+
+            // 注册 /users路由
+            CROW_ROUTE(app, "/usrs")
+            ([]() {
+                return service::HttpServiceManager::handleUserLists();
+            });
+            HelpDocManager::registerHelpDoc("/usrs", Protocol::HTTP, "User route", {"GET"}, "{}", "{\"status\": \"success\", \"users\": [{\"id\": 1, \"name\": \"user1\"}, {\"id\": 2, \"name\": \"user2\"}]}", {}, "admin", VERSIONS, "User route description");
 
             // 注册 /capture 路由
             CROW_ROUTE(app, "/capture")
-            ([this](const crow::request &req) {
-                return serviceManager.handleCaptureRequest(req);
+            ([](const crow::request &req) {
+                return service::HttpServiceManager::handleCaptureRequest(req);
             });
-            helpDocManager.registerHelpDoc("/capture", "Capture route and return file path", {"GET"}, "{}", "{\"status\": \"success\", \"path\": \"/myprojects/Demo/capture.jpg\"}", {{500, "Internal Server Error"}}, "admin", VERSIONS, "Capture route description");
-        
-            //注册 /video路由
-            CROW_ROUTE(app,"/video")([this](const crow::request&req){
-                return serviceManager.handleVideoRequest(req);
-            });
+            HelpDocManager::registerHelpDoc("/capture", Protocol::HTTP, "Capture route and return file path", {"GET"}, "{}", "{\"status\": \"success\", \"path\": \"/myprojects/Demo/capture.jpg\"}", {{500, "Internal Server Error"}}, "admin", VERSIONS, "Capture route description");
         }
 
         void bindWebsocketRoutes() {
-            //todo WebSocket路由绑定逻辑
+            CROW_WEBSOCKET_ROUTE(app, "/video")
+                .onaccept([](const crow::request &req, void **) -> bool {
+                    return service::WebSocketServiceManager::OnVideoAccept();
+                })
+                .onopen([](crow::websocket::connection &conn) {
+                    service::WebSocketServiceManager::OnVideoOpen(conn);
+                })
+                .onmessage([](crow::websocket::connection &conn, const std::string &data, bool is_binary) {
+                    service::WebSocketServiceManager::OnVideoMessage(conn, data, is_binary);
+                })
+                .onerror([](crow::websocket::connection &conn, const std::string &error_message) {
+                    service::WebSocketServiceManager::OnVideoError(conn, error_message);
+                })
+                .onclose([&](crow::websocket::connection &conn, const std::string &reason) {
+                    return service::WebSocketServiceManager::OnVideoClose(conn, reason);
+                });
         }
 
     public:
-        RouteManager() : helpDocManager(repositoryManager) {}
+        RouteManager() {}
 
         void run() {
             CustomLogger logger{2};
@@ -82,7 +89,7 @@ namespace routes {
         }
 
         std::string getRouteHelp() {
-            return repositoryManager.getRouteHelp();
+            return repository::RepositoryManager::getRouteHelp();
         }
     };
 }// namespace routes

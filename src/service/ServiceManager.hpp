@@ -2,13 +2,20 @@
 
 #include <crow.h>
 namespace service {
-    class ServiceManager {
+    class HttpServiceManager {
     public:
-        std::string handleExampleRequest(const crow::request &req);
-        std::string handleInfoRequest(const crow::request &req);
-        std::string handleCaptureRequest(const crow::request &req);
-        std::string handleFileOperationRequest(const crow::request &req);
-        std::string handleRoot();
-        std::string handleVideoRequest(const crow::request &req);
+        static std::string handleInfoRequest(const crow::request &req);
+        static std::string handleCaptureRequest(const crow::request &req);
+        static std::string handleRoot();
+        static std::string handleUserLists();
+    };
+
+    class WebSocketServiceManager {
+    public:
+        static bool OnVideoAccept();
+        static void OnVideoOpen(crow::websocket::connection &conn);
+        static void OnVideoMessage(crow::websocket::connection &conn, const std::string &data, bool is_binary);
+        static void OnVideoError(crow::websocket::connection& conn, const std::string& reason);
+        static void OnVideoClose(crow::websocket::connection& conn, const std::string& reason);
     };
 }// namespace service

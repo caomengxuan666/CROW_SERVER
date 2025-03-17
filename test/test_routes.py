@@ -9,11 +9,6 @@ def test_root_route():
     assert response.status_code == 200
     assert response.text == "<html><body><h1>Link Successfully to server!</h1><p>You can use route 'help' to get help!</p></body></html>"
 
-def test_example_route():
-    response = requests.get(f"{BASE_URL}/example")
-    print(f"Response from /example: {response.status_code} - {response.text}")
-    assert response.status_code == 200
-    assert response.text == "Example response"
 
 def test_info_route():
     response = requests.get(f"{BASE_URL}/info")
@@ -22,11 +17,7 @@ def test_info_route():
     assert "Client IP" in response.text
     assert "Time" in response.text
 
-def test_example_route():
-    response = requests.get(f"{BASE_URL}/example")
-    print(f"Response from /example: {response.status_code} - {response.text}")
-    assert response.status_code == 200
-    assert response.text == "Example response"
+
 
 
 '''
