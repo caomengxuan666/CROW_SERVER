@@ -9,7 +9,6 @@
 #include <GaoDe/GuideSDK.h>
 #include <GaoDe/porting_file.h>
 
-
 namespace service {
 
     // 定义命令处理函数类型
@@ -17,58 +16,159 @@ namespace service {
 
     // 命令处理函数映射
     static std::map<std::string, CommandHandler> commandHandlers = {
-        {"start", [](crow::websocket::connection &conn, const std::string &command) {
-            auto &camera = repository::RepositoryManager::operateCamera();
-            if (!camera.isRecording()) {
-                camera.startRecording();
-                conn.send_text(R"({"status": "success", "message": "Recording started!"})");
-            } else {
-                conn.send_text(R"({"status": "error", "message": "Already recording."})");
-            }
-        }},
-        {"stop", [](crow::websocket::connection &conn, const std::string &command) {
-            auto &camera = repository::RepositoryManager::operateCamera();
-            if (camera.isRecording()) {
-                camera.stopRecording();
-                conn.send_text(R"({"status": "success", "message": "Recording stopped!"})");
-            } else {
-                conn.send_text(R"({"status": "error", "message": "Not recording."})");
-            }
-        }},
-        {"capture", [](crow::websocket::connection &conn, const std::string &command) {
-            auto &camera = repository::RepositoryManager::operateCamera();
-            camera.takeShot();
-            conn.send_text(R"({"status": "success", "message": "Photo captured!"})");
-        }},
-        // 新增 record 命令处理逻辑
-        {"record", [](crow::websocket::connection &conn, const std::string &command) {
-            auto &camera = repository::RepositoryManager::operateCamera();
-            crow::json::rvalue msg = crow::json::load(command);
-            if (!msg || !msg.has("command")) {
-                conn.send_text(R"({"status": "error", "message": "Missing 'command' field."})");
-                return;
-            }
+            {"start", [](crow::websocket::connection &conn, const std::string &command) {
+                 auto &camera = repository::RepositoryManager::operateCamera();
+                 if (!camera.isRecording()) {
+                     camera.startRecording();
+                     conn.send_text(R"({"status": "success", "message": "Recording started!"})");
+                 } else {
+                     conn.send_text(R"({"status": "error", "message": "Already recording."})");
+                 }
+             }},
+            {"stop", [](crow::websocket::connection &conn, const std::string &command) {
+                 auto &camera = repository::RepositoryManager::operateCamera();
+                 if (camera.isRecording()) {
+                     camera.stopRecording();
+                     conn.send_text(R"({"status": "success", "message": "Recording stopped!"})");
+                 } else {
+                     conn.send_text(R"({"status": "error", "message": "Not recording."})");
+                 }
+             }},
+            {"capture", [](crow::websocket::connection &conn, const std::string &command) {
+                 auto &camera = repository::RepositoryManager::operateCamera();
+                 camera.takeShot();
+                 conn.send_text(R"({"status": "success", "message": "Photo captured!"})");
+             }},
+            // 新增 record 命令处理逻辑
+            {"record", [](crow::websocket::connection &conn, const std::string &command) {
+                 auto &camera = repository::RepositoryManager::operateCamera();
+                 crow::json::rvalue msg = crow::json::load(command);
+                 if (!msg || !msg.has("command")) {
+                     conn.send_text(R"({"status": "error", "message": "Missing 'command' field."})");
+                     return;
+                 }
 
-            std::string subCommand = msg["command"].s();
-            if (subCommand == "start") {
-                if (!camera.isRecording()) {
-                    camera.startRecording();
-                    conn.send_text(R"({"status": "success", "message": "Recording started!"})");
-                } else {
-                    conn.send_text(R"({"status": "error", "message": "Already recording."})");
-                }
-            } else if (subCommand == "stop") {
-                if (camera.isRecording()) {
-                    camera.stopRecording();
-                    conn.send_text(R"({"status": "success", "message": "Recording stopped!"})");
-                } else {
-                    conn.send_text(R"({"status": "error", "message": "Not recording."})");
-                }
-            } else {
-                conn.send_text(R"({"status": "error", "message": "Invalid sub-command for 'record'.})");
-            }
-        }}
-    };
+                 std::string subCommand = msg["command"].s();
+                 if (subCommand == "start") {
+                     if (!camera.isRecording()) {
+                         camera.startRecording();
+                         conn.send_text(R"({"status": "success", "message": "Recording started!"})");
+                     } else {
+                         conn.send_text(R"({"status": "error", "message": "Already recording."})");
+                     }
+                 } else if (subCommand == "stop") {
+                     if (camera.isRecording()) {
+                         camera.stopRecording();
+                         conn.send_text(R"({"status": "success", "message": "Recording stopped!"})");
+                     } else {
+                         conn.send_text(R"({"status": "error", "message": "Not recording."})");
+                     }
+                 } else {
+                     conn.send_text(R"({"status": "error", "message": "Invalid sub-command for 'record'.})");
+                 }
+             }},
+            // 新增 setParam 命令处理逻辑
+            {"setParam", [](crow::websocket::connection &conn, const std::string &command) {
+                 auto &camera = repository::RepositoryManager::operateCamera();
+                 crow::json::rvalue msg = crow::json::load(command);
+                 if (!msg || !msg.has("paramType") || !msg.has("paramValue")) {
+                     conn.send_text(R"({"status": "error", "message": "Missing 'paramType' or 'paramValue' field."})");
+                     return;
+                 }
+
+                 std::string paramTypeStr = msg["paramType"].s();
+                 CameraParamType paramType;
+                 if (paramTypeStr == "PIXEL_FORMAT") {
+                     paramType = CameraParamType::PIXEL_FORMAT;
+                 } else if (paramTypeStr == "ADJUST_LIGHT") {
+                     paramType = CameraParamType::ADJUST_LIGHT;
+                 } else if (paramTypeStr == "PALETTE") {
+                     paramType = CameraParamType::PALETTE;
+                 } else if (paramTypeStr == "ELECTRONIC_ZOOM") {
+                     paramType = CameraParamType::ELECTRONIC_ZOOM;
+                 } else if (paramTypeStr == "SHUTTER_CONTROL") {
+                     paramType = CameraParamType::SHUTTER_CONTROL;
+                 } else if (paramTypeStr == "CALC_PARAMETER") {
+                     paramType = CameraParamType::CALC_PARAMETER;
+                 } else if (paramTypeStr == "DEVICE_PORT") {
+                     paramType = CameraParamType::DEVICE_PORT;
+                 } else if (paramTypeStr == "ALARM_INFO") {
+                     paramType = CameraParamType::ALARM_INFO;
+                 } else {
+                     conn.send_text(R"({"status": "error", "message": "Invalid 'paramType'."})");
+                     return;
+                 }
+
+                 const void *paramValue = nullptr;
+                 // 根据 paramType 解析 paramValue
+                 switch (paramType) {
+                     case CameraParamType::PIXEL_FORMAT: {
+                         GD_PIXEL_FORMAT pixelFormat = static_cast<GD_PIXEL_FORMAT>(msg["paramValue"].i());
+                         paramValue = &pixelFormat;
+                         break;
+                     }
+                     case CameraParamType::ADJUST_LIGHT: {
+                         MODULATE_PARAM_INFO lightParam;
+                         lightParam.auto_moudulate = static_cast<BOOL_T>(msg["paramValue"]["auto_moudulate"].b());
+                         lightParam.luminance = msg["paramValue"]["luminance"].i();
+                         lightParam.contrast = msg["paramValue"]["contrast"].i();
+                         paramValue = &lightParam;
+                         break;
+                     }
+                     case CameraParamType::PALETTE: {
+                         INT32_T paletteIndex = msg["paramValue"].i();
+                         paramValue = &paletteIndex;
+                         break;
+                     }
+                     case CameraParamType::ELECTRONIC_ZOOM: {
+                         GD_ZOOM_SCALE zoomLevel = static_cast<GD_ZOOM_SCALE>(msg["paramValue"].i());
+                         paramValue = &zoomLevel;
+                         break;
+                     }
+                     case CameraParamType::SHUTTER_CONTROL: {
+                         CMD_SHUTTER_TYPE shutterType = static_cast<CMD_SHUTTER_TYPE>(msg["paramValue"].i());
+                         paramValue = &shutterType;
+                         break;
+                     }
+                     case CameraParamType::CALC_PARAMETER: {
+                         CALC_PARAM_INFO calcParam;
+                         calcParam.emiss = msg["paramValue"]["emiss"].d();
+                         calcParam.distance = msg["paramValue"]["distance"].d();
+                         calcParam.humidity = msg["paramValue"]["humidity"].i();
+                         calcParam.backTemp = msg["paramValue"]["backTemp"].d();
+                         calcParam.backFlag = msg["paramValue"]["backFlag"].i();
+                         calcParam.B = msg["paramValue"]["B"].d();
+                         calcParam.KF = msg["paramValue"]["KF"].i();
+                         calcParam.transmittance = msg["paramValue"]["transmittance"].d();
+                         calcParam.coef0 = msg["paramValue"]["coef0"].i();
+                         calcParam.coef1 = msg["paramValue"]["coef1"].i();
+                         paramValue = &calcParam;
+                         break;
+                     }
+                     case CameraParamType::DEVICE_PORT: {
+                         std::pair<DEVICE_PORT_TYPE, UINT16_T> portInfo;
+                         portInfo.first = static_cast<DEVICE_PORT_TYPE>(msg["paramValue"][0].i());
+                         portInfo.second = static_cast<UINT16_T>(msg["paramValue"][1].i());
+                         paramValue = &portInfo;
+                         break;
+                     }
+                     case CameraParamType::ALARM_INFO: {
+                         ALARM_INFO alarmInfo;
+                         alarmInfo.state = msg["paramValue"]["state"].i();
+                         alarmInfo.highLimit = msg["paramValue"]["highLimit"].i();
+                         alarmInfo.lowLimit = msg["paramValue"]["lowLimit"].i();
+                         alarmInfo.mode = msg["paramValue"]["mode"].i();
+                         paramValue = &alarmInfo;
+                         break;
+                     }
+                     default:
+                         conn.send_text(R"({"status": "error", "message": "Unsupported parameter type."})");
+                         return;
+                 }
+
+                 camera.setParams(paramType, paramValue);
+                 conn.send_text(R"({"status": "success", "message": "Parameter set successfully!"})");
+             }}};
 
     static void handleCommand(crow::websocket::connection &conn, const std::string &data) {
         try {
@@ -85,7 +185,7 @@ namespace service {
             // 根据 action 调用对应的处理函数
             auto it = commandHandlers.find(action);
             if (it != commandHandlers.end()) {
-                it->second(conn, data);  // 将完整数据传递给处理函数
+                it->second(conn, data);// 将完整数据传递给处理函数
             } else {
                 conn.send_text(R"({"status": "error", "message": "Invalid action."})");
             }
@@ -108,82 +208,6 @@ namespace service {
         return "<html><body><h1>Link Successfully to server!</h1><p>You can use route 'help' to get help!</p></body></html>";
     }
 
-
-    std::string HttpServiceManager::handleCaptureRequest(const crow::request &req) {
-        // 使用设备IP获取设备ID（替代固定ID）
-        INT32_T devID = GetDeviceIDNotConnected("192.168.1.168");// 实际IP
-        if (devID <= 0) {
-            return "Failed to get device ID for IP: 192.168.1.168";
-        }
-
-        // 定义回调函数（即使不需要处理数据，也需设置）
-        RGBDataCB rgbCB = [](GD_RGB_INFO rgbInfo, void *param) {
-            // 示例：验证数据有效性
-            if (rgbInfo.rgbData == nullptr) {
-                std::cerr << "Invalid RGB data received!" << std::endl;
-            }
-        };
-        Y16DataCB y16CB = [](GD_Y16_INFO y16Info, void *param) {};
-
-        // 连接设备并打开流
-        INT32_T result = OpenStream(
-                devID,
-                rgbCB,
-                y16CB,
-                nullptr,
-                nullptr,
-                WORKING_MODE::H264_MODE,
-                nullptr);
-        if (result != GUIDEIR_OK) {
-            return "Failed to open stream. Error code: " + std::to_string(result);
-        }
-
-        // 等待流初始化完成
-        std::this_thread::sleep_for(std::chrono::seconds(2));
-
-        // 检查设备状态
-        INT32_T state;
-        if (GetDeviceState(devID, &state) != GUIDEIR_OK || state != STREAM_CONNECT) {
-            CloseStream(devID);
-            return "Device not connected after initialization.";
-        }
-
-        // 设置参数
-        SetPixelFormatEx(devID, GD_PIXEL_FORMAT::RGB24_PIXEL_FORMAT);
-        SetPaletteEx(devID, IRONRED);// 使用示例中的色带（如铁红）
-
-        // 调焦和快门控制（示例中的关键步骤）
-        FocusControlEx(devID, AUTO_FOCUS, nullptr);
-        ShutterControlEx(devID, SHUTTER_NOW, nullptr);
-
-        // 生成文件路径
-        auto now = std::chrono::system_clock::now();
-        std::time_t now_time = std::chrono::system_clock::to_time_t(now);
-        std::tm now_tm = *std::localtime(&now_time);
-
-        std::ostringstream oss;
-        oss << "D:/images/capture_"
-            << std::put_time(&now_tm, "%Y%m%d_%H%M%S")
-            << ".jpg";
-        std::string imgPath = oss.str();
-
-        // 确保目录存在
-        std::filesystem::path dirPath = "D:/images";
-        if (!std::filesystem::exists(dirPath)) {
-            std::filesystem::create_directories(dirPath);
-        }
-
-        // 拍摄图片
-        result = TakeScreenshotEx(devID, imgPath.c_str(), IMG_TYPE::ONLY_JPG);
-        if (result == GUIDEIR_OK || result == 1) {
-            CloseStream(devID);
-            return "Image captured successfully: " + imgPath;
-        } else {
-            CloseStream(devID);
-            return "Failed to capture image. Error code: " + std::to_string(result);
-        }
-    }
-
     std::string HttpServiceManager::handleUserLists() {
         std::stringstream ss;
         ss << "<h1>User Lists:</h1>";
@@ -204,7 +228,6 @@ namespace service {
         // 加入用户
         repository::RepositoryManager::addUser(&conn);
         //在这里直接初始化相机
-        repository::RepositoryManager::operateCamera().initCamera();
         repository::RepositoryManager::operateCamera().openStream();
     }
 

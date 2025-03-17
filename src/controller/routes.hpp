@@ -4,7 +4,7 @@
  * @Author       : caomengxuan666 2507560089@qq.com
  * @Version      : 0.0.1
  * @LastEditors  : caomengxuan666 2507560089@qq.com
- * @LastEditTime : 2025-03-17 17:12:46
+ * @LastEditTime : 2025-03-17 22:00:41
  * @Copyright    : PESONAL DEVELOPER CMX., Copyright (c) 2025.
 **/
 #include "../service/ServiceManager.hpp"
@@ -14,7 +14,6 @@
 #include <crow/app.h>
 #include <crow/http_request.h>
 #include <crow/websocket.h>
-
 
 namespace routes {
     class RouteManager {
@@ -49,33 +48,29 @@ namespace routes {
                 return service::HttpServiceManager::handleUserLists();
             });
             HelpDocManager::registerHelpDoc("/usrs", Protocol::HTTP, "User route", {"GET"}, "{}", "{\"status\": \"success\", \"users\": [{\"id\": 1, \"name\": \"user1\"}, {\"id\": 2, \"name\": \"user2\"}]}", {}, "admin", VERSIONS, "User route description");
-
-            // 注册 /capture 路由
-            CROW_ROUTE(app, "/capture")
-            ([](const crow::request &req) {
-                return service::HttpServiceManager::handleCaptureRequest(req);
-            });
-            HelpDocManager::registerHelpDoc("/capture", Protocol::HTTP, "Capture route and return file path", {"GET"}, "{}", "{\"status\": \"success\", \"path\": \"/myprojects/Demo/capture.jpg\"}", {{500, "Internal Server Error"}}, "admin", VERSIONS, "Capture route description");
         }
 
         void bindWebsocketRoutes() {
             CROW_WEBSOCKET_ROUTE(app, "/video")
-                .onaccept([](const crow::request &req, void **) -> bool {
-                    return service::WebSocketServiceManager::OnVideoAccept();
-                })
-                .onopen([](crow::websocket::connection &conn) {
-                    service::WebSocketServiceManager::OnVideoOpen(conn);
-                })
-                .onmessage([](crow::websocket::connection &conn, const std::string &data, bool is_binary) {
-                    service::WebSocketServiceManager::OnVideoMessage(conn, data, is_binary);
-                })
-                .onerror([](crow::websocket::connection &conn, const std::string &error_message) {
-                    service::WebSocketServiceManager::OnVideoError(conn, error_message);
-                })
-                .onclose([&](crow::websocket::connection &conn, const std::string &reason) {
-                    return service::WebSocketServiceManager::OnVideoClose(conn, reason);
-                });
+                    .onaccept([](const crow::request &req, void **) -> bool {
+                        return service::WebSocketServiceManager::OnVideoAccept();
+                    })
+                    .onopen([](crow::websocket::connection &conn) {
+                        service::WebSocketServiceManager::OnVideoOpen(conn);
+                    })
+                    .onmessage([](crow::websocket::connection &conn, const std::string &data, bool is_binary) {
+                        service::WebSocketServiceManager::OnVideoMessage(conn, data, is_binary);
+                    })
+                    .onerror([](crow::websocket::connection &conn, const std::string &error_message) {
+                        service::WebSocketServiceManager::OnVideoError(conn, error_message);
+                    })
+                    .onclose([&](crow::websocket::connection &conn, const std::string &reason) {
+                        return service::WebSocketServiceManager::OnVideoClose(conn, reason);
+                    });
+            HelpDocManager::registerHelpDoc("/ws/video", Protocol::HTTP, "WebSocket online video stream/take a shot/video record",
+                                            {"NONE"}, "", "", {}, "", VERSIONS, "RTSP will run at rtsp://192.168.1.168:8554/video as default.");
         }
+
 
     public:
         RouteManager() {}

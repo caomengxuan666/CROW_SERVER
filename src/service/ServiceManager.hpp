@@ -5,7 +5,6 @@ namespace service {
     class HttpServiceManager {
     public:
         static std::string handleInfoRequest(const crow::request &req);
-        static std::string handleCaptureRequest(const crow::request &req);
         static std::string handleRoot();
         static std::string handleUserLists();
     };

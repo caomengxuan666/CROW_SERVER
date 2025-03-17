@@ -28,6 +28,14 @@ find_package(Crow CONFIG REQUIRED)
 # 添加子目录
 add_subdirectory(src)
 
+function(copy_resources)
+#将根目录下的debug.cfg移到build/src/controller下
+    file(COPY debug.cfg DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/src/controller)
+    message(STATUS "copy debug.cfg to ${CMAKE_CURRENT_BINARY_DIR}/src/controller")
+endfunction()
+
+copy_resources()
+
 # 安装目录为当前目录
 set(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_SOURCE_DIR})
 

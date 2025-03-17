@@ -30,7 +30,7 @@ def test_capture_route():
 
 '''
 def test_file_operation_route():
-    # 假设有一个文件路径 /myprojects/Demo/test.txt
+    # 文件路径 /myprojects/Demo/test.txt
     file_path = "/myprojects/Demo/test.txt"
     response = requests.get(f"{BASE_URL}/file?file={file_path}")
     print(f"Response from /file?file={file_path}: {response.status_code} - {response.text}")
