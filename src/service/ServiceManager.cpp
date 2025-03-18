@@ -4,6 +4,8 @@
 #include <crow/common.h>
 #include <filesystem>
 #include <iomanip>
+#include <memory>
+#include <mutex>
 #include <sstream>
 // 引入SDK头文件
 #include <GaoDe/GuideSDK.h>
@@ -11,34 +13,14 @@
 
 namespace service {
 
+    std::mutex operate_mutex;
+    crow::websocket::connection *active_conn = nullptr; // 记录当前活动连接
+
     // 定义命令处理函数类型
     using CommandHandler = std::function<void(crow::websocket::connection &, const std::string &)>;
 
     // 命令处理函数映射
     static std::map<std::string, CommandHandler> commandHandlers = {
-            {"start", [](crow::websocket::connection &conn, const std::string &command) {
-                 auto &camera = repository::RepositoryManager::operateCamera();
-                 if (!camera.isRecording()) {
-                     camera.startRecording();
-                     conn.send_text(R"({"status": "success", "message": "Recording started!"})");
-                 } else {
-                     conn.send_text(R"({"status": "error", "message": "Already recording."})");
-                 }
-             }},
-            {"stop", [](crow::websocket::connection &conn, const std::string &command) {
-                 auto &camera = repository::RepositoryManager::operateCamera();
-                 if (camera.isRecording()) {
-                     camera.stopRecording();
-                     conn.send_text(R"({"status": "success", "message": "Recording stopped!"})");
-                 } else {
-                     conn.send_text(R"({"status": "error", "message": "Not recording."})");
-                 }
-             }},
-            {"capture", [](crow::websocket::connection &conn, const std::string &command) {
-                 auto &camera = repository::RepositoryManager::operateCamera();
-                 camera.takeShot();
-                 conn.send_text(R"({"status": "success", "message": "Photo captured!"})");
-             }},
             // 新增 record 命令处理逻辑
             {"record", [](crow::websocket::connection &conn, const std::string &command) {
                  auto &camera = repository::RepositoryManager::operateCamera();
@@ -63,6 +45,9 @@ namespace service {
                      } else {
                          conn.send_text(R"({"status": "error", "message": "Not recording."})");
                      }
+                 } else if (subCommand == "capture") {
+                     camera.takeShot();
+                     conn.send_text(R"({"status": "success", "message": "Photo captured!"})");
                  } else {
                      conn.send_text(R"({"status": "error", "message": "Invalid sub-command for 'record'.})");
                  }
@@ -227,8 +212,17 @@ namespace service {
         CROW_LOG_INFO << "websocket link success";
         // 加入用户
         repository::RepositoryManager::addUser(&conn);
-        //在这里直接初始化相机
+        // 初始化相机
         repository::RepositoryManager::operateCamera().openStream();
+
+        // 初始化互斥状态
+        std::lock_guard<std::mutex> lock(operate_mutex);
+        if (active_conn == nullptr) {
+            active_conn = &conn;
+        } else {
+            // 如果已经有活动连接，拒绝新连接的操作
+            conn.send_text(R"({"status": "error", "message": "Another connection is already active."})");
+        }
     }
 
     void WebSocketServiceManager::OnVideoMessage(crow::websocket::connection &conn, const std::string &data, bool is_binary) {
@@ -238,18 +232,41 @@ namespace service {
             return;
         }
 
+        std::lock_guard<std::mutex> lock(operate_mutex);
+        if (active_conn != nullptr && active_conn != &conn) {
+            // 如果已经有其他连接在操作，拒绝当前连接的操作
+            conn.send_text(R"({"status": "error", "message": "Another connection is operating. Please try again later."})");
+            return;
+        }
+
+        // 设置当前连接为活动连接
+        active_conn = &conn;
+
         // 调用辅助函数处理命令
         handleCommand(conn, data);
+
+        // 释放活动连接
+        active_conn = nullptr;
     }
 
     void WebSocketServiceManager::OnVideoError(crow::websocket::connection &conn, const std::string &reason) {
-        //移除用户
+        std::lock_guard<std::mutex> lock(operate_mutex);
+        if (active_conn == &conn) {
+            // 如果当前连接是活动连接，释放它
+            active_conn = nullptr;
+        }
+        // 移除用户
         repository::RepositoryManager::removeUser(&conn);
         CROW_LOG_ERROR << " error" << "websocket error: " << reason;
     }
 
     void WebSocketServiceManager::OnVideoClose(crow::websocket::connection &conn, const std::string &reason) {
-        //移除用户
+        std::lock_guard<std::mutex> lock(operate_mutex);
+        if (active_conn == &conn) {
+            // 如果当前连接是活动连接，释放它
+            active_conn = nullptr;
+        }
+        // 移除用户
         repository::RepositoryManager::removeUser(&conn);
         CROW_LOG_ERROR << "websocket close" << " reason:" << reason;
     }

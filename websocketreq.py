@@ -3,12 +3,12 @@ import threading
 import time
 import json
 
-# commandHandlers 列表，新增 setParam 请求
+# commandHandlers 列表，新增 record 请求
 commandHandlers = [
-    {"action": "capture"},
+    # 新增 record 请求示例
+    {"action": "record", "command": "capture"},
     {"action": "record", "command": "start"},
     {"action": "record", "command": "stop"},
-    # 新增 setParam 请求示例
     {"action": "setParam", "paramType": "PIXEL_FORMAT", "paramValue": 1},
     {"action": "setParam", "paramType": "ADJUST_LIGHT", "paramValue": {"auto_moudulate": True, "luminance": 50, "contrast": 30}},
     {"action": "setParam", "paramType": "PALETTE", "paramValue": 2},
@@ -49,7 +49,7 @@ def start_client(url):
     ws.run_forever()
 
 if __name__ == "__main__":
-    urls = ["ws://127.0.0.1:8081/video"] * 1  # n个相同的 URL 示例
+    urls = ["ws://127.0.0.1:8081/video"] * 2  # n个相同的 URL 示例
     threads = []
     delay_interval = 0.02  # 20毫秒的延迟
 
