@@ -4,9 +4,11 @@
  * @Author       : caomengxuan666 2507560089@qq.com
  * @Version      : 0.0.1
  * @LastEditors  : caomengxuan666 2507560089@qq.com
- * @LastEditTime : 2025-03-17 16:50:08
+ * @LastEditTime : 2025-03-18 13:47:37
  * @Copyright    : PESONAL DEVELOPER CMX., Copyright (c) 2025.
 **/
+#pragma once
+
 #include "VideoCamera.hpp"
 #include <crow/websocket.h>
 #include <map>

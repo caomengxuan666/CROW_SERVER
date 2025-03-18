@@ -14,7 +14,7 @@
 namespace service {
 
     std::mutex operate_mutex;
-    crow::websocket::connection *active_conn = nullptr; // 记录当前活动连接
+    crow::websocket::connection *active_conn = nullptr;// 记录当前活动连接
 
     // 定义命令处理函数类型
     using CommandHandler = std::function<void(crow::websocket::connection &, const std::string &)>;
@@ -167,10 +167,17 @@ namespace service {
             std::string action = msg["action"].s();
             CROW_LOG_INFO << "Received action: " << action;
 
+            // 检查相机是否已初始化
+            auto &camera = repository::RepositoryManager::operateCamera();
+            if (!camera.isInit()) {
+                conn.send_text(R"({"status": "error", "message": "Camera is not initialized."})");
+                return;
+            }
+
             // 根据 action 调用对应的处理函数
             auto it = commandHandlers.find(action);
             if (it != commandHandlers.end()) {
-                it->second(conn, data);// 将完整数据传递给处理函数
+                it->second(conn, data); // 将完整数据传递给处理函数
             } else {
                 conn.send_text(R"({"status": "error", "message": "Invalid action."})");
             }
@@ -197,14 +204,19 @@ namespace service {
         std::stringstream ss;
         ss << "<h1>User Lists:</h1>";
         ss << "<ul>";
+        int index = 1; // 初始化序号
         for (const auto &user: repository::RepositoryManager::getUsers()) {
-            ss << "<li>" << user << "</li>";
+            ss << "<li>" << index++ << ":    " << user << "</li>"; // 添加序号
         }
         ss << "</ul>";
         return ss.str();
     }
 
     bool WebSocketServiceManager::OnVideoAccept() {
+        // 如果已经有活动连接，拒绝新连接的操作
+        if (active_conn != nullptr) {
+            return false;
+        }
         return true;
     }
 
@@ -220,8 +232,8 @@ namespace service {
         if (active_conn == nullptr) {
             active_conn = &conn;
         } else {
-            // 如果已经有活动连接，拒绝新连接的操作
-            conn.send_text(R"({"status": "error", "message": "Another connection is already active."})");
+            // 如果已经有活动连接，警告新连接的操作,新连接在活动连接退出之前无权限操作，如果一个客户端重复多次连接会导致无法操作，额外注意
+            conn.send_text(R"({"status": "warning", "message": "Another connection is already active."})");
         }
     }
 

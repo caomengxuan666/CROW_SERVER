@@ -116,6 +116,7 @@ public:
     **/
     void StateCallback(GD_STATE_INFO stateInfo, void *param);
 
+
 private:
     /**
      * @author       : caomengxuan
@@ -140,9 +141,12 @@ private:
 
 inline VideoCamera::VideoCamera() : _isFree(true), _isRecording(false), _camereid(1), _isInit(false) {
     // 查询设备 ID
+    //彩色打印，显示VideoCamera对象产生
+    std::cout << "\033[32mVideoCamera object created.\033[0m" << std::endl;
+
     _camereid = GetDeviceIDNotConnected("192.168.1.168");
     if (_camereid <= 0) {
-        std::cerr << "Failed to get device ID!" << std::endl;
+        std::cout << "\033[31mFailed to get device ID!\033[0m" << std::endl;
     } else {
         _isInit = true;
     }
@@ -163,13 +167,26 @@ inline VideoCamera::VideoCamera() : _isFree(true), _isRecording(false), _camerei
             std::cout << "Using default username and password instead" << std::endl;
             _rtsp_url = "rtsp://192.168.1.168:8554/video";
         }
+        //打印VideoCamera可用
+        std::cout << "\033[32mVideoCamera is available.\033[0m" << std::endl;
+    }
+    else{
+        std::cout << "\033[31mVideoCamera is unavailable!\033[0m" << std::endl;
     }
 }
 
 inline VideoCamera::~VideoCamera() {
     if (_isInit) {
-        disconnect();
+        stopRecording();// 停止录制（如果正在录制）
+        disconnect();   // 断开连接
+
+        _isInit = false;// 标记为未初始化
+
+        // 彩色打印：绿色显示摄像机连接已关闭
+        std::cout << "\033[32mCamera connection has been closed.\033[0m" << std::endl;
     }
+    //彩色打印，显示VideoCamera对象销毁
+    std::cout << "\033[32mVideoCamera object destroyed.\033[0m" << std::endl;
 }
 
 inline void VideoCamera::RGBDataCallback(GD_RGB_INFO rgbInfo, void *param) {
@@ -226,7 +243,7 @@ inline void VideoCamera::openStream() {
     auto rgbCallback = [this](GD_RGB_INFO rgbInfo, void *param) {
         if (rgbInfo.rgbData) {
             // 处理RGB数据
-            // free(rgbInfo.rgbData); // 根据实际情况决定是否释放内存
+            // free(rgbInfo.rgbData); // 根据实际情况决定是否释放内存，我反正觉得不用
         }
     };
 
@@ -256,7 +273,7 @@ inline void VideoCamera::openStream() {
             double centerTemp = (INT32_T) (100 * ft + 0.5) * 0.01;
             //输出中心点温度
             std::cout << "centerTemp: " << centerTemp << std::endl;
-            //todo 应该是在这里搞CSV，但是这个傻逼的SDK也没有提供CSV的轮子，我还得自己根据需求造
+            //todo 应该是在这里搞CSV，但是这个SDK也没有提供CSV的轮子，我还得自己根据需求造
         }
     };
 
