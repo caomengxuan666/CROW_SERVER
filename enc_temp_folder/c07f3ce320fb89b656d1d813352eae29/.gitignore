@@ -13,7 +13,3 @@
 *pyc
 
 /.pytest_cache
-
-/out
-
-/.vs

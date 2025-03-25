@@ -3,6 +3,7 @@
 #include <iostream>
 
 int main() {
+    /*
     std::vector<std::vector<std::string>> data = {
             {"Name", "Age", "City"},
             {"Alice", "25", "New York"},
@@ -17,4 +18,5 @@ int main() {
     }
 
     return 0;
+    */
 }

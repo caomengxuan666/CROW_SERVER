@@ -1,5 +1,6 @@
 #include "ServiceManager.hpp"
 #include "../repository/RepositoryManager.hpp"
+#include "VideoCamera.hpp"
 #include <chrono>
 #include <crow/common.h>
 #include <filesystem>
@@ -23,7 +24,7 @@ namespace service {
     static std::map<std::string, CommandHandler> commandHandlers = {
             // 新增 record 命令处理逻辑
             {"record", [](crow::websocket::connection &conn, const std::string &command) {
-                 auto &camera = repository::RepositoryManager::operateCamera();
+                 auto &camera = VideoCamera::getInstance();
                  crow::json::rvalue msg = crow::json::load(command);
                  if (!msg || !msg.has("command")) {
                      conn.send_text(R"({"status": "error", "message": "Missing 'command' field."})");
@@ -54,7 +55,7 @@ namespace service {
              }},
             // 新增 setParam 命令处理逻辑
             {"setParam", [](crow::websocket::connection &conn, const std::string &command) {
-                 auto &camera = repository::RepositoryManager::operateCamera();
+                 auto &camera = VideoCamera::getInstance();
                  crow::json::rvalue msg = crow::json::load(command);
                  if (!msg || !msg.has("paramType") || !msg.has("paramValue")) {
                      conn.send_text(R"({"status": "error", "message": "Missing 'paramType' or 'paramValue' field."})");
@@ -168,7 +169,7 @@ namespace service {
             CROW_LOG_INFO << "Received action: " << action;
 
             // 检查相机是否已初始化
-            auto &camera = repository::RepositoryManager::operateCamera();
+            auto &camera = VideoCamera::getInstance();
             if (!camera.isInit()) {
                 conn.send_text(R"({"status": "error", "message": "Camera is not initialized."})");
                 return;
@@ -225,7 +226,8 @@ namespace service {
         // 加入用户
         repository::RepositoryManager::addUser(&conn);
         // 初始化相机
-        repository::RepositoryManager::operateCamera().openStream();
+        auto &camera = VideoCamera::getInstance();
+        camera.openStream();
 
         // 初始化互斥状态
         std::lock_guard<std::mutex> lock(operate_mutex);

@@ -64,7 +64,7 @@ namespace routes {
                     .onerror([](crow::websocket::connection &conn, const std::string &error_message) {
                         service::WebSocketServiceManager::OnVideoError(conn, error_message);
                     })
-                    .onclose([&](crow::websocket::connection &conn, const std::string &reason) {
+                    .onclose([&](crow::websocket::connection &conn, const std::string &reason,int code) {
                         return service::WebSocketServiceManager::OnVideoClose(conn, reason);
                     });
             HelpDocManager::registerHelpDoc("/ws/video", Protocol::HTTP, "WebSocket online video stream/take a shot/video record",

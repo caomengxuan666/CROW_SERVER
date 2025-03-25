@@ -1,5 +1,4 @@
 #include "RepositoryManager.hpp"
-#include "VideoCamera.hpp"
 #include <sstream>
 
 namespace repository {
@@ -39,9 +38,6 @@ namespace repository {
         return oss.str();
     }
 
-    VideoCamera &RepositoryManager::operateCamera() {
-        return VideoCamera::getInstance();
-    }
 
     void RepositoryManager::addUser(crow::websocket::connection *conn) {
         users.insert(conn);

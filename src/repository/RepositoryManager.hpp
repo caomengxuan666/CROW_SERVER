@@ -9,7 +9,6 @@
 **/
 #pragma once
 
-#include "VideoCamera.hpp"
 #include <crow/websocket.h>
 #include <map>
 #include <string>
@@ -41,7 +40,6 @@ namespace repository {
         static std::string fetchData();
         static void registRouteHelp(const HelpDoc &doc);
         static std::string getRouteHelp();
-        static VideoCamera &operateCamera();// 返回已初始化的 VideoCamera 对象
         static void addUser(crow::websocket::connection *conn);
         static void removeUser(crow::websocket::connection *conn);
         static std::unordered_set<crow::websocket::connection *>&getUsers();

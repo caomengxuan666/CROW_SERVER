@@ -9,9 +9,9 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 # 如果是windows,设置vcpkg toolchain的路径
 if (WIN32)
-    set(CMAKE_TOOLCHAIN_FILE "D:/vcpkg/scripts/buildsystems/vcpkg.cmake")
+    set(CMAKE_TOOLCHAIN_FILE "D:/vcpkg/vcpkg-master/scripts/buildsystems/vcpkg.cmake")
     #设置cmake-prefix_path
-    set(CMAKE_PREFIX_PATH "D:/vcpkg/installed/x64-windows")
+    set(CMAKE_PREFIX_PATH "D:/vcpkg/vcpkg-master/installed/x64-windows")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_WIN32_WINNT=0x0A00")
 
     if (CMAKE_BUILD_TYPE STREQUAL "Debug")
