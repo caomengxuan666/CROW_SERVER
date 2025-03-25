@@ -204,6 +204,7 @@ namespace service {
         return "<html><body><h1>Link Successfully to server!</h1><p>You can use route 'help' to get help!</p></body></html>";
     }
 
+
     std::string HttpServiceManager::handleUserLists() {
         std::stringstream ss;
         ss << "<h1>User Lists:</h1>";

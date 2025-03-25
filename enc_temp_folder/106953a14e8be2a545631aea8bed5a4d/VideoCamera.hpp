@@ -191,9 +191,6 @@ inline void VideoCamera::onY16Data(GD_Y16_INFO y16Info, VOID *param) {
         return;
     }
 
-    //todo 需要保证这个函数不会一直触发
-    //如果说这个只要摄像头打开就一直触发，那么只能在takeshot函数里面调用OPENSTREAMEX了
-
     // 获取图像的宽度和高度
     int imgWidth = y16Info.imgWidth;
     int imgHeight = y16Info.imgHeight;
@@ -215,12 +212,10 @@ inline void VideoCamera::onY16Data(GD_Y16_INFO y16Info, VOID *param) {
 
             // 将温度值转换为字符串并存储到矩阵中
             tempMatrix[y][x] = std::to_string(tempValue);
-            //todo 这里应该要释放内存的
         }
     }
 
     // 保存温度矩阵为 CSV 文件
-    //todo 这里的csv文件名得设置动态的，根据时间来的
     std::string filePath = "temperature_matrix.csv";// 文件路径
     auto result = Utility::CsvWriter::writeCsv(filePath, tempMatrix);
 

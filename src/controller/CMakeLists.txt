@@ -8,7 +8,7 @@ set(GaoDeServerSRC main.cpp logHandler.hpp)
 add_executable(${PROJECT_NAME} ${GaoDeServerSRC})
 
 # 链接静态库
-target_link_libraries(${PROJECT_NAME} PRIVATE ServiceManager RepositoryManager)
+target_link_libraries(${PROJECT_NAME} PRIVATE ServiceManager RepositoryManager Utility)
 
 # 安装规则
 install(TARGETS ${PROJECT_NAME} DESTINATION bin)
