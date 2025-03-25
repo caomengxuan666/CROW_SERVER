@@ -32,6 +32,7 @@ function(copy_resources)
 #将根目录下的debug.cfg移到build/src/controller下
     file(COPY debug.cfg DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/src/controller)
     message(STATUS "copy debug.cfg to ${CMAKE_CURRENT_BINARY_DIR}/src/controller")
+    file(COPY debug.cfg DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/src/service)
 endfunction()
 
 copy_resources()

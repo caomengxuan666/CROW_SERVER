@@ -6,7 +6,8 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
 endif()
 
 # 添加共享库
-add_library(ServiceManager STATIC ServiceManager.cpp VideoCamera.hpp)
+add_library(ServiceManager STATIC ServiceManager.cpp VideoCamera.hpp "VideoExample.cpp")
+add_executable(VideoExample VideoExample.cpp)
 
 # 设置通用前缀
 set(SDK_PREFIX "${CMAKE_SOURCE_DIR}/dll/")
@@ -66,13 +67,15 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
   foreach(LIB ${GAODESDK})
     target_link_libraries(ServiceManager PUBLIC ${SDK_PREFIX}${SDK_SUBDIR}/${LIB}.lib)
+    target_link_libraries(VideoExample PUBLIC ${SDK_PREFIX}${SDK_SUBDIR}/${LIB}.lib)
   endforeach()
   endif()
   # 添加对 C 标准库和 C++ 标准库的链接
   target_link_libraries(ServiceManager PUBLIC msvcrt msvcprt)
+   target_link_libraries(VideoExample PUBLIC msvcrt msvcprt)
 
   target_link_libraries(ServiceManager PUBLIC ${SDK_PREFIX}${SDK_SUBDIR}/PortingMod_Release_x64.lib)
-
+    target_link_libraries(VideoExample PUBLIC ${SDK_PREFIX}${SDK_SUBDIR}/PortingMod_Release_x64.lib)
 
 # 安装规则
 install(TARGETS ServiceManager DESTINATION lib)

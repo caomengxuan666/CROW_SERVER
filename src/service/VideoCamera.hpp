@@ -144,7 +144,7 @@ inline VideoCamera::VideoCamera() : _isFree(true), _isRecording(false), _camerei
     //彩色打印，显示VideoCamera对象产生
     std::cout << "\033[32mVideoCamera object created.\033[0m" << std::endl;
 
-    _camereid = GetDeviceIDNotConnected("192.168.1.168");
+    _camereid = GetDeviceIDNotConnected("192.168.1.188");
     if (_camereid <= 0) {
         std::cout << "\033[31mFailed to get device ID!\033[0m" << std::endl;
     } else {
@@ -161,14 +161,15 @@ inline VideoCamera::VideoCamera() : _isFree(true), _isRecording(false), _camerei
             std::cout << "UserName: " << _usrName << std::endl;
             std::cout << "Password: " << _pwd << std::endl;
             // 拼接 RTSP URL
-            _rtsp_url = "rtsp://" + _usrName + ":" + _pwd + "@192.168.1.168:8554/video";
+            _rtsp_url = "rtsp://" + _usrName + ":" + _pwd + "@192.168.1.188:8554/video";
             std::cout << "RTSP URL: " << _rtsp_url << std::endl;
         } else {
             std::cout << "Using default username and password instead" << std::endl;
-            _rtsp_url = "rtsp://192.168.1.168:8554/video";
+            _rtsp_url = "rtsp://192.168.1.188:8554/video";
         }
         //打印VideoCamera可用
         std::cout << "\033[32mVideoCamera is available.\033[0m" << std::endl;
+        std::cout << "\033[32mVideo DEVICE INDEX IS :" << _camereid << "\033[0m" << std::endl;
     }
     else{
         std::cout << "\033[31mVideoCamera is unavailable!\033[0m" << std::endl;
@@ -300,7 +301,8 @@ inline void VideoCamera::openStream() {
     if (result == GUIDEIR_ERR) {
         std::cerr << "Failed to open stream. Error code: " << result << std::endl;
         return;
-    }
+    } else
+        std::cout << "open stream" << std::endl;
 
     // 轮询检测设备状态，超时时间5s
     bool timeout = true;
@@ -328,44 +330,52 @@ inline void VideoCamera::openStream() {
     ShowPointTemp(_camereid, point);
 }
 
+VOID onRGBData(GD_RGB_INFO info, VOID *param) {
+    //显示图像
+}
+void onY16Data(GD_Y16_INFO infoY16, VOID *param) {
+    //Y16 数据处理
+}
+void onStateChanged(GD_STATE_INFO info, VOID *param) {
+    //提示网络断开或者连上
+}
+
 inline void VideoCamera::takeShot() {
     if (!_isInit || _camereid <= 0) {
         std::cerr << "Camera not initialized or invalid device ID!" << std::endl;
         return;
     }
 
-    // 生成文件路径
-    auto now = std::chrono::system_clock::now();
-    std::time_t now_time = std::chrono::system_clock::to_time_t(now);
-    std::tm now_tm = *std::localtime(&now_time);
+    static int ret = OpenStream(_camereid, onRGBData, onY16Data, onStateChanged, (VOID *) _camereid, H264_MODE, 0);
+    if (GUIDEIR_ERR == ret)
+        return ;
+
+    // 定义图片保存路径
+    const CHAR_T imgPath[] = "D:/images/";
 
     // 设置参数
     SetPixelFormatEx(_camereid, GD_PIXEL_FORMAT::RGB24_PIXEL_FORMAT);
-    SetPaletteEx(_camereid, IRONRED);// 使用示例中的色带（如铁红）
+    SetPaletteEx(_camereid, IRONRED);
 
     // 调焦和快门控制（关键步骤）
     FocusControlEx(_camereid, AUTO_FOCUS, nullptr);
     ShutterControlEx(_camereid, SHUTTER_NOW, nullptr);
 
-    std::ostringstream oss;
-    oss << "D:/images/capture_"
-        << std::put_time(&now_tm, "%Y%m%d_%H%M%S")
-        << ".jpg";
-    std::string imgPath = oss.str();
-
     // 确保目录存在
-    std::filesystem::path dirPath = "D:/images";
+    std::filesystem::path dirPath = "D:/images/";
     if (!std::filesystem::exists(dirPath)) {
         std::filesystem::create_directories(dirPath);
     }
 
     // 拍摄图片
-    INT32_T result = TakeScreenshotEx(_camereid, imgPath.c_str(), IMG_TYPE::ONLY_JPG);
+    std::cout << "_camera ID : " << _camereid << std::endl;
+    INT32_T result = TakeScreenshotEx(_camereid, imgPath, IMG_TYPE::ONLY_JPG);
     if (result == GUIDEIR_OK || result == 1) {
         std::cout << "Image captured successfully: " << imgPath << std::endl;
     } else {
         std::cerr << "Failed to capture image. Error code: " << result << std::endl;
     }
+    
 }
 
 inline void VideoCamera::startRecording() {

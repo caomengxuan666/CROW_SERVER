@@ -34,12 +34,14 @@ namespace service {
                  std::string subCommand = msg["command"].s();
                  if (subCommand == "start") {
                      if (!camera.isRecording()) {
+                         std::cout << "start!" << std::endl;
                          camera.startRecording();
                          conn.send_text(R"({"status": "success", "message": "Recording started!"})");
                      } else {
                          conn.send_text(R"({"status": "error", "message": "Already recording."})");
                      }
                  } else if (subCommand == "stop") {
+                     std::cout << "stop!" << std::endl;
                      if (camera.isRecording()) {
                          camera.stopRecording();
                          conn.send_text(R"({"status": "success", "message": "Recording stopped!"})");
@@ -47,6 +49,7 @@ namespace service {
                          conn.send_text(R"({"status": "error", "message": "Not recording."})");
                      }
                  } else if (subCommand == "capture") {
+                     std::cout << "capture!" << std::endl;
                      camera.takeShot();
                      conn.send_text(R"({"status": "success", "message": "Photo captured!"})");
                  } else {
@@ -226,8 +229,8 @@ namespace service {
         // 加入用户
         repository::RepositoryManager::addUser(&conn);
         // 初始化相机
-        auto &camera = VideoCamera::getInstance();
-        camera.openStream();
+        //auto &camera = VideoCamera::getInstance();
+        //camera.openStream();
 
         // 初始化互斥状态
         std::lock_guard<std::mutex> lock(operate_mutex);
