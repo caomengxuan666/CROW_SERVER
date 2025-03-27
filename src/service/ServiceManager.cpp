@@ -48,11 +48,13 @@ namespace service {
                      } else {
                          conn.send_text(R"({"status": "error", "message": "Not recording."})");
                      }
-                 } else if (subCommand == "capture") {
-                     std::cout << "capture!" << std::endl;
-                     camera.takeShot();
-                     conn.send_text(R"({"status": "success", "message": "Photo captured!"})");
-                 } else {
+                 }else if (subCommand == "capture") {
+                        std::cout << "capture!" << std::endl;
+                        camera.takeShot();
+                        auto csvpath = camera.getCsvPath();
+                        std::string response = R"({"status": "success", "message": "Photo captured at ", "file_path": "')" + csvpath + R"("})";
+                        conn.send_text(response);
+                 }else{
                      conn.send_text(R"({"status": "error", "message": "Invalid sub-command for 'record'.})");
                  }
              }},
@@ -229,9 +231,6 @@ namespace service {
         CROW_LOG_INFO << "websocket link success";
         // 加入用户
         repository::RepositoryManager::addUser(&conn);
-        // 初始化相机
-        //auto &camera = VideoCamera::getInstance();
-        //camera.openStream();
 
         // 初始化互斥状态
         std::lock_guard<std::mutex> lock(operate_mutex);

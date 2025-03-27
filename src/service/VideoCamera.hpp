@@ -13,7 +13,8 @@
 #include <ostream>
 #include <sstream>
 #include <thread>
-#include"../Utility/CsvWriter.h"
+#include "../Utility/CsvWriter.h"
+#include <chrono>
 
 
 VOID onRGBData(GD_RGB_INFO info, VOID *param) {
@@ -99,6 +100,9 @@ public:
 
     const bool isInit() const { return _isInit; }
 
+    //获取我们的CSV保存路径
+    const std::string getCsvPath() {return _csvPath;}
+
 
 private:
     /**
@@ -113,6 +117,7 @@ private:
 
     bool _isFree;
     bool _isRecording;// 标记是否正在录制
+    bool _isShoting;    //标记是否正在拍照
     int _camereid;
     bool _isInit;
     std::mutex _mutex;
@@ -120,6 +125,7 @@ private:
     std::string _usrName;
     std::string _pwd;
     std::string _rtsp_url;
+    std::string _csvPath;
 };
 
 inline VideoCamera::VideoCamera() : _isFree(true), _isRecording(false), _camereid(1), _isInit(false) {
@@ -167,7 +173,6 @@ inline VideoCamera::VideoCamera() : _isFree(true), _isRecording(false), _camerei
             Y16_MODE,
             0);
 
-        //第一次，默认拍摄一张图片，因为第一次的图片是黑色的
 }
 
 inline VideoCamera::~VideoCamera() {
@@ -186,14 +191,13 @@ inline VideoCamera::~VideoCamera() {
 
 
 inline void VideoCamera::onY16Data(GD_Y16_INFO y16Info, VOID *param) {
+    //由于这个回调函数会在有Y16 DATA的时候一直触发，我们需要做的是
+    //保证他在拍照的时候才去触发他。
+    if (!_isShoting) return;
     if (!y16Info.y16Data) {
         std::cerr << "Error: y16Data is null!" << std::endl;
         return;
     }
-
-    //todo 需要保证这个函数不会一直触发
-    //如果说这个只要摄像头打开就一直触发，那么只能在takeshot函数里面调用OPENSTREAMEX了
-
     // 获取图像的宽度和高度
     int imgWidth = y16Info.imgWidth;
     int imgHeight = y16Info.imgHeight;
@@ -215,20 +219,38 @@ inline void VideoCamera::onY16Data(GD_Y16_INFO y16Info, VOID *param) {
 
             // 将温度值转换为字符串并存储到矩阵中
             tempMatrix[y][x] = std::to_string(tempValue);
-            //todo 这里应该要释放内存的
         }
     }
 
     // 保存温度矩阵为 CSV 文件
-    //todo 这里的csv文件名得设置动态的，根据时间来的
-    std::string filePath = "temperature_matrix.csv";// 文件路径
+
+ // 获取当前时间
+    auto now = std::chrono::system_clock::now();
+    std::time_t now_time = std::chrono::system_clock::to_time_t(now);
+    std::tm now_tm = *std::localtime(&now_time);
+
+    // 获取当前时间的秒数
+    auto now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;
+
+    // 格式化时间字符串
+    std::ostringstream oss;
+    oss << "temperature_matrix_"
+        << std::put_time(&now_tm, "%Y%m%d_%H%M%S")
+        << "_" << std::setw(3) << std::setfill('0') << now_ms.count()
+        << ".csv";
+    std::string filePath = oss.str();
+
+    // 保存温度矩阵为 CSV 文件
     auto result = Utility::CsvWriter::writeCsv(filePath, tempMatrix);
 
     if (result.first) {
         std::cout << "Temperature matrix saved successfully to: " << result.second << std::endl;
+        _csvPath = result.second;
     } else {
         std::cerr << "Failed to save temperature matrix!" << std::endl;
+        _csvPath = "";
     }
+    _isShoting = false;
 }
 
 inline void VideoCamera::takeShot() {
@@ -236,7 +258,6 @@ inline void VideoCamera::takeShot() {
         std::cerr << "Camera not initialized or invalid device ID!" << std::endl;
         return;
     }
-
 
     // 定义图片保存路径
     const CHAR_T imgPath[] = "D:/images/";
@@ -254,6 +275,8 @@ inline void VideoCamera::takeShot() {
     if (!std::filesystem::exists(dirPath)) {
         std::filesystem::create_directories(dirPath);
     }
+
+    _isShoting = true;
 
     // 拍摄图片
     std::cout << "_camera ID : " << _camereid << std::endl;
