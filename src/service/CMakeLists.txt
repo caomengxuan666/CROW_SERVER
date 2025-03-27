@@ -6,7 +6,7 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
 endif()
 
 # 添加共享库
-add_library(ServiceManager STATIC ServiceManager.cpp VideoCamera.hpp "VideoExample.cpp")
+add_library(ServiceManager STATIC ServiceManager.cpp VideoCamera.hpp PebbleLog.h MiddleWare.hpp MiddleWareImpl.hpp PebbleLog.cpp)
 add_executable(VideoExample VideoExample.cpp)
 
 # 设置通用前缀

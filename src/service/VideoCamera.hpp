@@ -8,14 +8,13 @@
 #include <ctime>
 #include <filesystem>
 #include <iomanip>
-#include <iostream>
 #include <mutex>
 #include <ostream>
 #include <sstream>
 #include <thread>
 #include "../Utility/CsvWriter.h"
 #include <chrono>
-
+#include "PebbleLog.h"
 
 VOID onRGBData(GD_RGB_INFO info, VOID *param) {
     //显示图像
@@ -131,11 +130,11 @@ private:
 inline VideoCamera::VideoCamera() : _isFree(true), _isRecording(false), _camereid(1), _isInit(false) {
     // 查询设备 ID
     //彩色打印，显示VideoCamera对象产生
-    std::cout << "\033[32mVideoCamera object created.\033[0m" << std::endl;
+    PebbleLog::info("VideoCamera object created.");
 
     _camereid = GetDeviceIDNotConnected("192.168.1.188");
     if (_camereid <= 0) {
-        std::cout << "\033[31mFailed to get device ID!\033[0m" << std::endl;
+        PebbleLog::error("Failed to get device ID!");
     } else {
         _isInit = true;
     }
@@ -147,21 +146,21 @@ inline VideoCamera::VideoCamera() : _isFree(true), _isRecording(false), _camerei
         if (info.userName != "") {
             _usrName = info.userName;
             _pwd = info.passWord;
-            std::cout << "UserName: " << _usrName << std::endl;
-            std::cout << "Password: " << _pwd << std::endl;
+            PebbleLog::info("UserName: " + _usrName);
+            PebbleLog::info("Password: " + _pwd);
             // 拼接 RTSP URL
             _rtsp_url = "rtsp://" + _usrName + ":" + _pwd + "@192.168.1.188:8554/video";
-            std::cout << "RTSP URL: " << _rtsp_url << std::endl;
+            PebbleLog::info("RTSP URL: " + _rtsp_url);
         } else {
-            std::cout << "Using default username and password instead" << std::endl;
+            PebbleLog::info("Using default username and password instead");
             _rtsp_url = "rtsp://192.168.1.188:8554/video";
         }
         //打印VideoCamera可用
-        std::cout << "\033[32mVideoCamera is available.\033[0m" << std::endl;
-        std::cout << "\033[32mVideo DEVICE INDEX IS :" << _camereid << "\033[0m" << std::endl;
+        PebbleLog::info("VideoCamera is available.");
+        PebbleLog::info("Video DEVICE INDEX IS: " + std::to_string(_camereid));
     }
     else{
-        std::cout << "\033[31mVideoCamera is unavailable!\033[0m" << std::endl;
+        PebbleLog::error("VideoCamera is unavailable!");
     }
 
         OpenStream(
@@ -182,11 +181,9 @@ inline VideoCamera::~VideoCamera() {
 
         _isInit = false;// 标记为未初始化
 
-        // 彩色打印：绿色显示摄像机连接已关闭
-        std::cout << "\033[32mCamera connection has been closed.\033[0m" << std::endl;
+        PebbleLog::info("Camera connection has been closed.");
     }
-    //彩色打印，显示VideoCamera对象销毁
-    std::cout << "\033[32mVideoCamera object destroyed.\033[0m" << std::endl;
+    PebbleLog::info("VideoCamera object destroyed.");
 }
 
 
@@ -244,10 +241,10 @@ inline void VideoCamera::onY16Data(GD_Y16_INFO y16Info, VOID *param) {
     auto result = Utility::CsvWriter::writeCsv(filePath, tempMatrix);
 
     if (result.first) {
-        std::cout << "Temperature matrix saved successfully to: " << result.second << std::endl;
+        PebbleLog::info("Temperature matrix saved successfully to: {}", result.second);
         _csvPath = result.second;
     } else {
-        std::cerr << "Failed to save temperature matrix!" << std::endl;
+        PebbleLog::error("Failed to save temperature matrix!");
         _csvPath = "";
     }
     _isShoting = false;
@@ -279,12 +276,12 @@ inline void VideoCamera::takeShot() {
     _isShoting = true;
 
     // 拍摄图片
-    std::cout << "_camera ID : " << _camereid << std::endl;
+    PebbleLog::info("_camera ID: {}",_camereid);
     INT32_T result = TakeScreenshotEx(_camereid, imgPath, IMG_TYPE::ONLY_JPG);
     if (result == GUIDEIR_OK || result == 1) {
-        std::cout << "Image captured successfully: " << imgPath << std::endl;
+        PebbleLog::info("Image captured successfully: {}",std::string(imgPath));
     } else {
-        std::cerr << "Failed to capture image. Error code: " << result << std::endl;
+        PebbleLog::error("Failed to capture image. Error code: " + std::to_string(result));
     }
     
 }
