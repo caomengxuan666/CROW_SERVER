@@ -75,7 +75,7 @@
     <h2>Video Stream</h2>
     <button id="startVideoButton" class="command-button">Start Video Stream</button>
     <video id="videoPlayer" class="video-js vjs-default-skin" controls preload="auto" width="640" height="400">
-        <source src="http://192.168.1.188:8554/video.m3u8" type="application/x-mpegURL">
+        <source src="http://192.168.1.168:8554/video.m3u8" type="application/x-mpegURL">
     </video>
 
     <script>
@@ -127,7 +127,7 @@
                 autoplay: true,
                 controls: true,
                 sources: [{
-                    src: 'rtsp://guide:guide@192.168.1.188:8554/video',
+                    src: 'rtsp://guide:guide@192.168.1.168:8554/video',
                     type: 'rtsp'
                 }]
             });

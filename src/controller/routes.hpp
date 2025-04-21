@@ -80,7 +80,7 @@ namespace routes {
             crow::logger::setHandler(&logger);
             bindHttpRoutes();
             bindWebsocketRoutes();
-            app.bindaddr("127.0.0.1").port(8081).multithreaded().run();
+            app.bindaddr("127.0.0.1").port(8081).run();
         }
 
         std::string getRouteHelp() {

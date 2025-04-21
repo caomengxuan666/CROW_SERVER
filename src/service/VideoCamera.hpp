@@ -16,10 +16,6 @@
 #include <chrono>
 #include "PebbleLog.h"
 
-VOID onRGBData(GD_RGB_INFO info, VOID *param) {
-    //显示图像
-}
-
 
 void onStateChanged(GD_STATE_INFO info, VOID *param) {
     //提示网络断开或者连上
@@ -77,11 +73,11 @@ public:
     void disconnect();
 
         // 静态适配器函数
-    static void StaticOnY16Data(GD_Y16_INFO y16Info, VOID *param) {
-        static_cast<VideoCamera *>(param)->onY16Data(y16Info, param);
+    static void StaticOnRgbData(GD_RGB_INFO Info, VOID *param) {
+        static_cast<VideoCamera *>(param)->onRgbData(Info, param);
     }
 
-    void onY16Data(GD_Y16_INFO y16Info,VOID *param);
+    void onRgbData(GD_RGB_INFO Info, VOID *param);
 
     /**
      * @author       : caomengxuan
@@ -116,7 +112,7 @@ private:
 
     bool _isFree;
     bool _isRecording;// 标记是否正在录制
-    bool _isShoting;    //标记是否正在拍照
+    bool _isShoting=true;    //标记是否正在拍照
     int _camereid;
     bool _isInit;
     std::mutex _mutex;
@@ -132,7 +128,7 @@ inline VideoCamera::VideoCamera() : _isFree(true), _isRecording(false), _camerei
     //彩色打印，显示VideoCamera对象产生
     PebbleLog::info("VideoCamera object created.");
 
-    _camereid = GetDeviceIDNotConnected("192.168.1.188");
+    _camereid = GetDeviceIDNotConnected("192.168.1.168");
     if (_camereid <= 0) {
         PebbleLog::error("Failed to get device ID!");
     } else {
@@ -149,11 +145,11 @@ inline VideoCamera::VideoCamera() : _isFree(true), _isRecording(false), _camerei
             PebbleLog::info("UserName: " + _usrName);
             PebbleLog::info("Password: " + _pwd);
             // 拼接 RTSP URL
-            _rtsp_url = "rtsp://" + _usrName + ":" + _pwd + "@192.168.1.188:8554/video";
+            _rtsp_url = "rtsp://" + _usrName + ":" + _pwd + "@192.168.1.168:8554/video";
             PebbleLog::info("RTSP URL: " + _rtsp_url);
         } else {
             PebbleLog::info("Using default username and password instead");
-            _rtsp_url = "rtsp://192.168.1.188:8554/video";
+            _rtsp_url = "rtsp://192.168.1.168:8554/video";
         }
         //打印VideoCamera可用
         PebbleLog::info("VideoCamera is available.");
@@ -165,11 +161,11 @@ inline VideoCamera::VideoCamera() : _isFree(true), _isRecording(false), _camerei
 
         OpenStream(
             _camereid,
-            onRGBData,                    // 普通函数
-            &VideoCamera::StaticOnY16Data,// 静态成员函数
-            onStateChanged,
+            &VideoCamera::StaticOnRgbData,                    // 普通函数
+            nullptr,// 静态成员函数
+            nullptr,
             this,// 传递 this 指针
-            Y16_MODE,
+            H264_MODE,
             0);
 
 }
@@ -187,41 +183,33 @@ inline VideoCamera::~VideoCamera() {
 }
 
 
-inline void VideoCamera::onY16Data(GD_Y16_INFO y16Info, VOID *param) {
-    //由于这个回调函数会在有Y16 DATA的时候一直触发，我们需要做的是
+inline void VideoCamera::onRgbData(GD_RGB_INFO info, VOID *param) {
     //保证他在拍照的时候才去触发他。
     if (!_isShoting) return;
-    if (!y16Info.y16Data) {
+    if (!info.rgbData) {
         std::cerr << "Error: y16Data is null!" << std::endl;
         return;
     }
     // 获取图像的宽度和高度
-    int imgWidth = y16Info.imgWidth;
-    int imgHeight = y16Info.imgHeight;
+    int imgWidth = info.imgWidth;
+    int imgHeight = info.imgHeight;
 
     // 构建温度矩阵
-    std::vector<std::vector<std::string>> tempMatrix(imgHeight, std::vector<std::string>(imgWidth));
+    std::vector<FLOAT_T> tempMatrix(imgWidth * imgHeight);
 
-    for (int y = 0; y < imgHeight; ++y) {
-        for (int x = 0; x < imgWidth; ++x) {
-            // 计算当前像素点的索引
-            int index = y * imgWidth + x;
+    if (GetTempMatrixEx(_camereid, tempMatrix.data(), imgWidth, imgHeight) != GUIDEIR_OK) {
+        std::cerr << "Failed to get temperature matrix." << std::endl;
+        return ;
+    }
 
-            // 获取原始 Y16 数据
-            INT16_T rawValue = y16Info.y16Data[index];
-
-            // 转换为实际温度值
-            FLOAT_T tempValue;
-            GetY16Temp(_camereid, rawValue, &tempValue);
-
-            // 将温度值转换为字符串并存储到矩阵中
-            tempMatrix[y][x] = std::to_string(tempValue);
+    std::vector<std::vector<std::string>> csvData(imgHeight, std::vector<std::string>(imgWidth));
+    for (INT32_T i = 0; i < imgHeight; ++i) {
+        for (INT32_T j = 0; j < imgWidth; ++j) {
+            csvData[i][j] = std::to_string(tempMatrix[i * imgWidth + j]);
         }
     }
 
-    // 保存温度矩阵为 CSV 文件
-
- // 获取当前时间
+     // 获取当前时间
     auto now = std::chrono::system_clock::now();
     std::time_t now_time = std::chrono::system_clock::to_time_t(now);
     std::tm now_tm = *std::localtime(&now_time);
@@ -237,17 +225,15 @@ inline void VideoCamera::onY16Data(GD_Y16_INFO y16Info, VOID *param) {
         << ".csv";
     std::string filePath = oss.str();
 
-    // 保存温度矩阵为 CSV 文件
-    auto result = Utility::CsvWriter::writeCsv(filePath, tempMatrix);
 
-    if (result.first) {
-        PebbleLog::info("Temperature matrix saved successfully to: {}", result.second);
-        _csvPath = result.second;
+    auto csvResult = Utility::CsvWriter::writeCsv(filePath, csvData);
+    if (!csvResult.first) {
+        PebbleLog::error("Failed to write CSV file");
     } else {
-        PebbleLog::error("Failed to save temperature matrix!");
-        _csvPath = "";
+        PebbleLog::info("Temperature matrix saved to:  {}" ,csvResult.second);
     }
     _isShoting = false;
+    return;
 }
 
 inline void VideoCamera::takeShot() {
@@ -274,6 +260,13 @@ inline void VideoCamera::takeShot() {
     }
 
     _isShoting = true;
+    
+    static int first_init = 0;
+    if (first_init == 0) {
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+        first_init = 1;
+    }
+ 
 
     // 拍摄图片
     PebbleLog::info("_camera ID: {}",_camereid);

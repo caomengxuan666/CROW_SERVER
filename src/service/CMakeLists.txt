@@ -78,5 +78,7 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
   target_link_libraries(VideoExample PUBLIC ${SDK_PREFIX}${SDK_SUBDIR}/PortingMod_Release_x64.lib)
 
   target_link_libraries(ServiceManager PUBLIC Utility)
+
+  target_link_libraries(VideoExample PUBLIC Utility)
 # 安装规则
 install(TARGETS ServiceManager DESTINATION lib)
