@@ -1,5 +1,9 @@
-set(GAODESDK GuideSDK MeasureStream ParseGWImage
-    avcodec avformat avutil swscale usb-1.0 va-drm va-x11)
+# 根据平台设置GAODESDK库
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  set(GAODESDK GuideSDK MeasureStream ParseGWImage avcodec avformat avutil swscale usb-1.0 va-drm va-x11)
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+  set(GAODESDK GuideSDK GFileAnalysis)
+endif()
 
 # 添加共享库
 add_library(RepositoryManager STATIC RepositoryManager.cpp)

@@ -1,5 +1,9 @@
-set(GAODESDK GuideSDK MeasureStream ParseGWImage
-    avcodec avformat avutil swscale usb-1.0 va-drm va-x11)
+# 根据平台设置GAODESDK库
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  set(GAODESDK GuideSDK MeasureStream ParseGWImage avcodec avformat avutil swscale usb-1.0 va-drm va-x11)
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+  set(GAODESDK GuideSDK GFileAnalysis)
+endif()
 
 set(GaoDeServerSRC main.cpp logHandler.hpp)
 
@@ -24,11 +28,7 @@ endif()
 
 # 链接其他系统库
 if (WIN32)
-    # Windows平台只需要链接实际存在的库
-    target_link_libraries(${PROJECT_NAME} PRIVATE 
-        usb-1.0 va 
-        PocoFoundation PocoJSON
-        )
+
 else()
     target_link_libraries(${PROJECT_NAME} PRIVATE 
         avcodec avformat avutil swscale swresample avdevice
