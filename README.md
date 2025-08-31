@@ -67,3 +67,30 @@ struct HelpDoc {
 
 （4）相机校准、温标、最高温和最低温显示、配色切换。     (还没看)
 ```
+
+## 构建和打包
+
+### 本地构建
+
+```bash
+mkdir build
+cd build
+cmake ..
+make
+```
+
+### 使用CPack打包
+
+```bash
+mkdir build
+cd build
+cmake ..
+make
+cpack
+```
+
+这将在build目录下生成安装包。在Windows上会生成.zip文件。
+
+### GitHub Actions自动构建和发布
+
+当推送带有`v`前缀的标签时（如`v1.0.0`），GitHub Actions将自动在Windows平台上构建项目并创建Release。

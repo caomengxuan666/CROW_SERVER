@@ -44,7 +44,38 @@ set(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_SOURCE_DIR})
 
 # 安装规则
 install(TARGETS Diabetes-server DESTINATION bin)
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/dll/linux64/ DESTINATION lib)
+if (WIN32)
+    install(DIRECTORY ${CMAKE_SOURCE_DIR}/dll/ DESTINATION bin)
+else()
+    install(DIRECTORY ${CMAKE_SOURCE_DIR}/dll/linux64/ DESTINATION lib)
+endif()
 
 # 启用测试支持
 enable_testing()
+
+# CPack配置
+set(CPACK_PACKAGE_NAME "DiabetesServer")
+set(CPACK_PACKAGE_VENDOR "PESONAL DEVELOPER CMX")
+set(CPACK_PACKAGE_DESCRIPTION "A C++ server application based on Crow framework for infrared image acquisition")
+set(CPACK_PACKAGE_VERSION "1.0.0")
+set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-${CMAKE_SYSTEM_NAME}")
+
+# Windows特定配置
+if (WIN32)
+    set(CPACK_GENERATOR "ZIP")
+    
+    # Windows安装程序配置
+    set(CPACK_PACKAGE_INSTALL_DIRECTORY "${CPACK_PACKAGE_NAME}")
+    set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE")
+    
+    # 创建开始菜单快捷方式
+    set(CPACK_PACKAGE_EXECUTABLES "Diabetes-server" "Diabetes Server")
+    set(CPACK_CREATE_DESKTOP_LINKS "Diabetes-server")
+endif()
+
+# Linux特定配置
+if(UNIX AND NOT APPLE)
+    set(CPACK_GENERATOR "TGZ")
+endif()
+
+include(CPack)
