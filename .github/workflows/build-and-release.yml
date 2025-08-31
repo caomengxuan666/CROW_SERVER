@@ -18,6 +18,8 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+      with:
+        submodules: true
 
     - name: Set up CMake
       uses: jwlawson/actions-setup-cmake@v1.14
@@ -31,7 +33,7 @@ jobs:
 
     - name: Configure CMake
       run: |
-        cmake -B build -DCMAKE_BUILD_TYPE=Release -G "Ninja"
+        cmake -B build -DCMAKE_BUILD_TYPE=Release -G "Visual Studio 16 2019" -A x64
 
     - name: Build
       run: cmake --build build --config Release
