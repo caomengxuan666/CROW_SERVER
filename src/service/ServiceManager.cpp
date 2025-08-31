@@ -48,13 +48,13 @@ namespace service {
                      } else {
                          conn.send_text(R"({"status": "error", "message": "Not recording."})");
                      }
-                 }else if (subCommand == "capture") {
-                        std::cout << "capture!" << std::endl;
-                        camera.takeShot();
-                        auto csvpath = camera.getCsvPath();
-                        std::string response = R"({"status": "success", "message": "Photo captured at ", "file_path": "')" + csvpath + R"("})";
-                        conn.send_text(response);
-                 }else{
+                 } else if (subCommand == "capture") {
+                     std::cout << "capture!" << std::endl;
+                     camera.takeShot();
+                     auto csvpath = camera.getCsvPath();
+                     std::string response = R"({"status": "success", "message": "Photo captured at ", "file_path": "')" + csvpath + R"("})";
+                     conn.send_text(response);
+                 } else {
                      conn.send_text(R"({"status": "error", "message": "Invalid sub-command for 'record'.})");
                  }
              }},
@@ -134,7 +134,7 @@ namespace service {
                          // 快门控制需要类型和参数
                          CMD_SHUTTER_TYPE shutterType = static_cast<CMD_SHUTTER_TYPE>(msg["paramValue"]["type"].i());
                          // 对于快门控制，参数可能为空，这里简单处理为nullptr
-                         std::pair<CMD_SHUTTER_TYPE, void*> shutterParams(shutterType, nullptr);
+                         std::pair<CMD_SHUTTER_TYPE, void *> shutterParams(shutterType, nullptr);
                          paramValue = &shutterParams;
                          break;
                      }
@@ -172,7 +172,7 @@ namespace service {
                      case CameraParamType::FOCUS_CONTROL: {
                          CMD_FOCUS_TYPE focusType = static_cast<CMD_FOCUS_TYPE>(msg["paramValue"]["type"].i());
                          // 对于调焦控制，参数可能为空，这里简单处理为nullptr
-                         std::pair<CMD_FOCUS_TYPE, void*> focusParams(focusType, nullptr);
+                         std::pair<CMD_FOCUS_TYPE, void *> focusParams(focusType, nullptr);
                          paramValue = &focusParams;
                          break;
                      }
@@ -195,14 +195,14 @@ namespace service {
                      case CameraParamType::DEVICE_PARAMETER: {
                          DEVICE_PARAM_TYPE deviceParamType = static_cast<DEVICE_PARAM_TYPE>(msg["paramValue"]["type"].i());
                          //todo 对于设备参数，参数可能为空，这里简单处理为nullptr
-                         std::pair<DEVICE_PARAM_TYPE, void*> deviceParam(deviceParamType, nullptr);
+                         std::pair<DEVICE_PARAM_TYPE, void *> deviceParam(deviceParamType, nullptr);
                          paramValue = &deviceParam;
                          break;
                      }
                      case CameraParamType::TEMP_LABEL: {
                          CMD_TRMPLABEL_TYPE labelType = static_cast<CMD_TRMPLABEL_TYPE>(msg["paramValue"]["type"].i());
                          //todo 对于温度标签控制，参数可能为空，这里简单处理为nullptr
-                         std::pair<CMD_TRMPLABEL_TYPE, void*> labelParams(labelType, nullptr);
+                         std::pair<CMD_TRMPLABEL_TYPE, void *> labelParams(labelType, nullptr);
                          paramValue = &labelParams;
                          break;
                      }
@@ -243,7 +243,7 @@ namespace service {
             // 根据 action 调用对应的处理函数
             auto it = commandHandlers.find(action);
             if (it != commandHandlers.end()) {
-                it->second(conn, data); // 将完整数据传递给处理函数
+                it->second(conn, data);// 将完整数据传递给处理函数
             } else {
                 conn.send_text(R"({"status": "error", "message": "Invalid action."})");
             }
@@ -271,9 +271,9 @@ namespace service {
         std::stringstream ss;
         ss << "<h1>User Lists:</h1>";
         ss << "<ul>";
-        int index = 1; // 初始化序号
+        int index = 1;// 初始化序号
         for (const auto &user: repository::RepositoryManager::getUsers()) {
-            ss << "<li>" << index++ << ":    " << user << "</li>"; // 添加序号
+            ss << "<li>" << index++ << ":    " << user << "</li>";// 添加序号
         }
         ss << "</ul>";
         return ss.str();

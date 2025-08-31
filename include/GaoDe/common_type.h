@@ -15,45 +15,43 @@ extern "C" {
 #endif
 
 /* generic type redefinitions */
-typedef int                 INT32_T;
-typedef unsigned int        UINT32_T;
-typedef short               INT16_T;
-typedef unsigned short      UINT16_T;
-typedef char                CHAR_T;
-typedef unsigned char       BYTE_T;
+typedef int INT32_T;
+typedef unsigned int UINT32_T;
+typedef short INT16_T;
+typedef unsigned short UINT16_T;
+typedef char CHAR_T;
+typedef unsigned char BYTE_T;
 
-typedef long                LONG_T;
-typedef unsigned long       ULONG_T;
-typedef unsigned long long  UINT64_T;
-typedef long long           INT64_T;
-typedef float               FLOAT_T;
-typedef double              DOUBLE_T;
+typedef long LONG_T;
+typedef unsigned long ULONG_T;
+typedef unsigned long long UINT64_T;
+typedef long long INT64_T;
+typedef float FLOAT_T;
+typedef double DOUBLE_T;
 #ifdef WINDOWS_PLATFORM
-typedef void *				HANDLE_T;	//兼容32bit和64bit操作系统
+typedef void *HANDLE_T;//兼容32bit和64bit操作系统
 #include "windows.h"
 #else
-typedef UINT64_T			HANDLE_T;
-#endif // WINDOWS_PLATFORM
-#define CONST				const
-#define VOID				void
+typedef UINT64_T HANDLE_T;
+#endif// WINDOWS_PLATFORM
+#define CONST const
+#define VOID void
 
-typedef enum
-{
-	FALSE_T = 0,
-	TRUE_T = 1,
+typedef enum {
+    FALSE_T = 0,
+    TRUE_T = 1,
 } BOOL_T;
 
 /* general return values */
-#define GUIDEIR_OK			(0)
-#define GUIDEIR_ERR			(-1)
-#define GUIDEIR_NULL		(0)//((VOID *)0)
+#define GUIDEIR_OK (0)
+#define GUIDEIR_ERR (-1)
+#define GUIDEIR_NULL (0)//((VOID *)0)
 
-#define MIN_M(a,b) ((a) < (b) ? (a) : (b))
-#define MAX_M(a,b) ((a) > (b) ? (a) : (b))
+#define MIN_M(a, b) ((a) < (b) ? (a) : (b))
+#define MAX_M(a, b) ((a) > (b) ? (a) : (b))
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif // !COMMON_TYPE_H
-
+#endif// !COMMON_TYPE_H

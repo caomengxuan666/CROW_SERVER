@@ -37,6 +37,8 @@ endif()
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   target_link_directories(ServiceManager PUBLIC
                           ${SDK_PREFIX}${SDK_SUBDIR})
+  target_link_directories(VideoExample PUBLIC
+                          ${SDK_PREFIX}${SDK_SUBDIR})
 
   # 确保运行时路径支持
   set_target_properties(ServiceManager PROPERTIES
@@ -44,8 +46,16 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
                         INSTALL_RPATH "${SDK_PREFIX}${SDK_SUBDIR}"
                         SKIP_BUILD_RPATH FALSE
                         INSTALL_RPATH_USE_LINK_PATH TRUE)
+                        
+  set_target_properties(VideoExample PROPERTIES
+                        BUILD_WITH_INSTALL_RPATH TRUE
+                        INSTALL_RPATH "${SDK_PREFIX}${SDK_SUBDIR}"
+                        SKIP_BUILD_RPATH FALSE
+                        INSTALL_RPATH_USE_LINK_PATH TRUE)
 else()
   target_link_directories(ServiceManager PUBLIC
+                          ${SDK_PREFIX}${SDK_SUBDIR})
+  target_link_directories(VideoExample PUBLIC
                           ${SDK_PREFIX}${SDK_SUBDIR})
 endif()
 
@@ -58,27 +68,41 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
 endif()
 
 # 链接动态库
-
 #如果是linux,链接.so
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   foreach(LIB ${GAODESDK})
-    target_link_libraries(ServiceManager PUBLIC ${SDK_PREFIX}${SDK_SUBDIR}/lib${LIB}.so)
+    target_link_libraries(ServiceManager PUBLIC lib${LIB}.so)
+    target_link_libraries(VideoExample PUBLIC lib${LIB}.so)
   endforeach()
+  
+  # 链接Linux平台特定的库
+  target_link_libraries(ServiceManager PUBLIC 
+    avcodec avformat avutil swscale swresample avdevice
+    usb-1.0 va va-drm va-x11
+    PocoFoundation PocoJSON
+    pthread dl)
+    
+  target_link_libraries(VideoExample PUBLIC 
+    avcodec avformat avutil swscale swresample avdevice
+    usb-1.0 va va-drm va-x11
+    PocoFoundation PocoJSON
+    pthread dl)
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
   foreach(LIB ${GAODESDK})
-    target_link_libraries(ServiceManager PUBLIC ${SDK_PREFIX}${SDK_SUBDIR}/${LIB}.lib)
-    target_link_libraries(VideoExample PUBLIC ${SDK_PREFIX}${SDK_SUBDIR}/${LIB}.lib)
+    target_link_libraries(ServiceManager PUBLIC ${LIB}.lib)
+    target_link_libraries(VideoExample PUBLIC ${LIB}.lib)
   endforeach()
-  endif()
+  
   # 添加对 C 标准库和 C++ 标准库的链接
   target_link_libraries(ServiceManager PUBLIC msvcrt msvcprt)
-   target_link_libraries(VideoExample PUBLIC msvcrt msvcprt)
+  target_link_libraries(VideoExample PUBLIC msvcrt msvcprt)
 
-  target_link_libraries(ServiceManager PUBLIC ${SDK_PREFIX}${SDK_SUBDIR}/PortingMod_Release_x64.lib)
-  target_link_libraries(VideoExample PUBLIC ${SDK_PREFIX}${SDK_SUBDIR}/PortingMod_Release_x64.lib)
+  target_link_libraries(ServiceManager PUBLIC PortingMod_Release_x64.lib)
+  target_link_libraries(VideoExample PUBLIC PortingMod_Release_x64.lib)
+endif()
 
-  target_link_libraries(ServiceManager PUBLIC Utility)
+target_link_libraries(ServiceManager PUBLIC Utility)
+target_link_libraries(VideoExample PUBLIC Utility)
 
-  target_link_libraries(VideoExample PUBLIC Utility)
 # 安装规则
 install(TARGETS ServiceManager DESTINATION lib)

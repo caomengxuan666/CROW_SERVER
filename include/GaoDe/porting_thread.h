@@ -16,18 +16,18 @@ Description	:
 extern "C" {
 #endif
 
-typedef struct 
+typedef struct
 {
-	UINT16_T year;
-	UINT16_T month;
-	UINT16_T day;
-	UINT16_T hour;
-	UINT16_T minute;
-	UINT16_T second;
-	UINT16_T milliseconds;
+    UINT16_T year;
+    UINT16_T month;
+    UINT16_T day;
+    UINT16_T hour;
+    UINT16_T minute;
+    UINT16_T second;
+    UINT16_T milliseconds;
 } TIME_T;
 
-typedef  VOID(*GUIDEIR_THREAD_PROC)(VOID *param);
+typedef VOID (*GUIDEIR_THREAD_PROC)(VOID *param);
 
 /**
 * @brief		创建线程
@@ -122,5 +122,4 @@ UINT32_T porting_get_ms(VOID);
 }
 #endif
 
-#endif // !PORTING_THREAD_H
-
+#endif// !PORTING_THREAD_H

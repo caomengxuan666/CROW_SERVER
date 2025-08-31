@@ -30,7 +30,7 @@ namespace utils::Log {
     std::condition_variable PebbleLog::queueCond;                    // 定义静态成员变量
     static bool skipDebug = false;
 
-// 在 PebbleLog 构造函数中初始化控制台模式
+    // 在 PebbleLog 构造函数中初始化控制台模式
     PebbleLog::PebbleLog() : stopFlag(false) {
 #ifdef _WIN32
         // 启用虚拟终端支持
@@ -172,7 +172,7 @@ namespace utils::Log {
     }
 #endif
 
-    #ifndef _WIN32
+#ifndef _WIN32
     void PebbleLog::writeLogToConsole(LogLevel level, const std::string &message) {
         // 使用 ANSI 转义序列
         const char *colorCode = "";

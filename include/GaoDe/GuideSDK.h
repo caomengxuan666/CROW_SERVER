@@ -88,7 +88,7 @@ GUIDESDKAPI INT32_T GetDeviceInfo(INT32_T devID, DEVICE_INFO *devInfo);
 * @note		
 */
 GUIDESDKAPI INT32_T OpenStream(INT32_T devID, RGBDataCB rgbCB, Y16DataCB y16CB,
-							StateCB stateCB, VOID *param, WORKING_MODE mode, CONST CHAR_T *url);
+                               StateCB stateCB, VOID *param, WORKING_MODE mode, CONST CHAR_T *url);
 /**
 * @brief	另一种方式打开设备，连接成功将分配设备ID。
 * @param
@@ -103,7 +103,7 @@ GUIDESDKAPI INT32_T OpenStream(INT32_T devID, RGBDataCB rgbCB, Y16DataCB y16CB,
 * @note		支持重复连接同一个设备IP，成功连接后虚拟一个设备ID返回，保证每路视频devID不同。
 */
 GUIDESDKAPI INT32_T OpenStreamEx(CONST CHAR_T *ip, RGBDataCB rgbCB, Y16DataCB y16CB,
-							StateCB stateCB, VOID *param, WORKING_MODE mode, CONST CHAR_T *url);
+                                 StateCB stateCB, VOID *param, WORKING_MODE mode, CONST CHAR_T *url);
 
 /**
 * @brief	获取设备网络属性信息。
@@ -219,7 +219,7 @@ GUIDESDKAPI INT32_T GetPaletteEx(INT32_T devID, INT32_T *paletteIndex);
 *  exLevel		电子变焦倍数。
 * @return		成功返回GUIDEIR_OK，失败返回GUIDEIR_ERR。
 */
-GUIDESDKAPI INT32_T SetElecZoomPlus(INT32_T devID, GD_ZOOM_SCALE  exLevel);
+GUIDESDKAPI INT32_T SetElecZoomPlus(INT32_T devID, GD_ZOOM_SCALE exLevel);
 
 /**
 * @brief		获取电子变焦信息(Json形式)。
@@ -254,7 +254,7 @@ GUIDESDKAPI INT32_T GetVersionInfo(INT32_T devID, VERSION_INFO *verInfo);
 *				网络配置成功后将自动更新本地设备信息。修改成dhcp方式例外，需要使用者调用GetDeviceNum自行更新信息。
 */
 GUIDESDKAPI INT32_T NetworkSettings(INT32_T devID, CONST CHAR_T *newIP, CONST CHAR_T *netMask,
-	CONST CHAR_T *newGateWay, CONST CHAR_T *newDNS, BOOL_T dhcp);
+                                    CONST CHAR_T *newGateWay, CONST CHAR_T *newDNS, BOOL_T dhcp);
 
 /*@brief	搜索设备并返回接入设备信息和数量。
 *			在有无open stream的情况下均可调用searchDevice查询已接入的设备信息。
@@ -374,7 +374,7 @@ GUIDESDKAPI INT32_T GetDetailEnhanceParameter(INT32_T devID, FIXED_POINT_IEE *in
 * @return		成功返回GUIDEIR_OK，失败返回GUIDEIR_ERR。
 * @note			从本地生成IEE.data文件导入数据并设置参数。
 */
-GUIDESDKAPI INT32_T ImportDetailEnhanceParameter(INT32_T devID, CONST CHAR_T * dataPath);
+GUIDESDKAPI INT32_T ImportDetailEnhanceParameter(INT32_T devID, CONST CHAR_T *dataPath);
 
 /**
 * @brief		导出细节增加参数。
@@ -384,7 +384,7 @@ GUIDESDKAPI INT32_T ImportDetailEnhanceParameter(INT32_T devID, CONST CHAR_T * d
 * @return		成功返回GUIDEIR_OK，失败返回GUIDEIR_ERR。
 * @note			在本地生成IEE.data文件存储数据。
 */
-GUIDESDKAPI INT32_T ExportDetailEnhanceParameter(INT32_T devID, CONST CHAR_T * dataPath);
+GUIDESDKAPI INT32_T ExportDetailEnhanceParameter(INT32_T devID, CONST CHAR_T *dataPath);
 
 /**
 * @brief		设置测温参数或其它参数。
@@ -482,7 +482,7 @@ GUIDESDKAPI INT32_T TakeScreenshotEx(INT32_T devID, CONST CHAR_T *imgPath, IMG_T
 *  imgType		图片类型，此接口只支持ONLY_JPG和JPG_TEMP_GW。
 * @return		失败返回GUIDEIR_ERR，成功返回GUIDEIR_OK或1。
 */
-GUIDESDKAPI INT32_T GetImgTempFromGW(CONST CHAR_T * imgPath, FLOAT_T * temp);
+GUIDESDKAPI INT32_T GetImgTempFromGW(CONST CHAR_T *imgPath, FLOAT_T *temp);
 
 /**
 * @brief		开始录制视频。
@@ -609,7 +609,7 @@ GUIDESDKAPI INT32_T DisconnectDevice(HANDLE_T device);
 * @return: GUIDESDKAPI INT32_T
 * @note:  
 **/
-GUIDESDKAPI INT32_T DeviceSnapshot(HANDLE_T device, CONST CHAR_T * imgPath);
+GUIDESDKAPI INT32_T DeviceSnapshot(HANDLE_T device, CONST CHAR_T *imgPath);
 
 /**
 * @brief:  DeviceStartRecord
@@ -620,7 +620,7 @@ GUIDESDKAPI INT32_T DeviceSnapshot(HANDLE_T device, CONST CHAR_T * imgPath);
 * @return: GUIDESDKAPI INT32_T
 * @note:  
 **/
-GUIDESDKAPI INT32_T DeviceStartRecord(HANDLE_T device, CONST CHAR_T * videoPath, GD_MEDIA_TYPE mediaType);
+GUIDESDKAPI INT32_T DeviceStartRecord(HANDLE_T device, CONST CHAR_T *videoPath, GD_MEDIA_TYPE mediaType);
 
 /**
 * @brief:  DeviceStopRecord
@@ -630,7 +630,6 @@ GUIDESDKAPI INT32_T DeviceStartRecord(HANDLE_T device, CONST CHAR_T * videoPath,
 * @note:  
 **/
 GUIDESDKAPI INT32_T DeviceStopRecord(HANDLE_T device);
-
 
 
 //************************************之前版本的接口，不建议使用，只为兼容之前版本而存在***************************************************//
@@ -717,7 +716,7 @@ GUIDESDKAPI INT32_T GetY16Temp(INT32_T devID, INT16_T y16Value, FLOAT_T *temp);
 *  mapTemp		输出参数，映射后的体内温度。
 * @return	成功返回GUIDEIR_OK，失败返回GUIDEIR_ERR。
 */
-GUIDESDKAPI INT32_T GetMapTemperature(INT32_T devID, FLOAT_T enviTemp, FLOAT_T surfaceTemp, FLOAT_T * mapTemp);
+GUIDESDKAPI INT32_T GetMapTemperature(INT32_T devID, FLOAT_T enviTemp, FLOAT_T surfaceTemp, FLOAT_T *mapTemp);
 
 /**
 * @brief		设置色带。
@@ -926,7 +925,7 @@ GUIDESDKAPI INT32_T GetImgPointTemp(CONST CHAR_T *imgPath, POINT_T point, FLOAT_
 *  timeout	超时时间，超出此时间无应答将返回失败。
 * @return	成功返回GUIDEIR_OK，失败返回GUIDEIR_ERR。
 */
-GUIDESDKAPI INT32_T PtzControl(INT32_T devID, PTZ_COMMAND_TYPE cmd, VOID * paramIn, VOID * paramOut, INT32_T timeout);
+GUIDESDKAPI INT32_T PtzControl(INT32_T devID, PTZ_COMMAND_TYPE cmd, VOID *paramIn, VOID *paramOut, INT32_T timeout);
 
 
 /**
@@ -943,7 +942,6 @@ GUIDESDKAPI INT32_T PtzControl(INT32_T devID, PTZ_COMMAND_TYPE cmd, VOID * param
 GUIDESDKAPI INT32_T PlpControl(INT32_T devID, PLP_COMMAND_TYPE cmd, PLP_OBJ_INFO *plpArray, INT32_T *size);
 
 
-
 //以下接口不开放。
 
 /**
@@ -957,9 +955,8 @@ GUIDESDKAPI INT32_T PlpControl(INT32_T devID, PLP_COMMAND_TYPE cmd, PLP_OBJ_INFO
 * @return		成功返回GUIDEIR_OK，失败返回GUIDEIR_ERR。
 */
 GUIDESDKAPI INT32_T GetFrameCentraTemp(CONST CHAR_T *vidPath, INT32_T frameIndex,
-	INT32_T *w, INT32_T *h, FLOAT_T *temp);
+                                       INT32_T *w, INT32_T *h, FLOAT_T *temp);
 
 GUIDESDK_STDC_END
 
-#endif // !GUIDE_SDK_H
-
+#endif// !GUIDE_SDK_H

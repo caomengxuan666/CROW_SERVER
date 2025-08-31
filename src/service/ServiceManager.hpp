@@ -14,7 +14,7 @@ namespace service {
         static bool OnVideoAccept();
         static void OnVideoOpen(crow::websocket::connection &conn);
         static void OnVideoMessage(crow::websocket::connection &conn, const std::string &data, bool is_binary);
-        static void OnVideoError(crow::websocket::connection& conn, const std::string& reason);
-        static void OnVideoClose(crow::websocket::connection& conn, const std::string& reason);
+        static void OnVideoError(crow::websocket::connection &conn, const std::string &reason);
+        static void OnVideoClose(crow::websocket::connection &conn, const std::string &reason);
     };
 }// namespace service

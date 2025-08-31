@@ -92,10 +92,10 @@ namespace utils::Log {
             ((oss << args << " (" << typeid(args).name() << "), "), ...);
             std::string logMessage = oss.str();
             if (!logMessage.empty() && logMessage.back() == ' ') {
-                logMessage.pop_back(); // ÒÆ³ýÄ©Î²¶àÓàµÄ¿Õ¸ñ
+                logMessage.pop_back();// ÒÆ³ýÄ©Î²¶àÓàµÄ¿Õ¸ñ
             }
             if (!logMessage.empty() && logMessage.back() == ',') {
-                logMessage.pop_back(); // ÒÆ³ýÄ©Î²¶àÓàµÄ¶ººÅ
+                logMessage.pop_back();// ÒÆ³ýÄ©Î²¶àÓàµÄ¶ººÅ
             }
             log(LogLevel::TRACE, logMessage);
 
@@ -207,7 +207,4 @@ namespace utils::Log {
 }// namespace utils::Log
 
 #define PEBBLETRACE(func, ...) \
-    PebbleLog::traceFunction(__FILE__, __LINE__, __func__, func, ##__VA_ARGS__); \
-
-
-    
+    PebbleLog::traceFunction(__FILE__, __LINE__, __func__, func, ##__VA_ARGS__);

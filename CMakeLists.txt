@@ -7,26 +7,13 @@ set(CMAKE_CXX_STANDARD 20)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
-# 如果是windows,设置vcpkg toolchain的路径
-if (WIN32)
-    set(CMAKE_TOOLCHAIN_FILE "D:/vcpkg/vcpkg-master/scripts/buildsystems/vcpkg.cmake")
-    #设置cmake-prefix_path
-    set(CMAKE_PREFIX_PATH "D:/vcpkg/vcpkg-master/installed/x64-windows")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_WIN32_WINNT=0x0A00")
-
-    if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MDd")
-    else ()
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MD")
-    endif ()
-
-endif ()
-
-# 查找crow库
-find_package(Crow CONFIG REQUIRED)
+# 添加third_party/crow到包含路径
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/third_party/crow/include)
 
 # 添加子目录
 add_subdirectory(src)
+
+add_subdirectory(third_party/crow)
 
 function(copy_resources)
 #将根目录下的debug.cfg移到build/src/controller下

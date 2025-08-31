@@ -42,7 +42,7 @@ namespace repository {
         static std::string getRouteHelp();
         static void addUser(crow::websocket::connection *conn);
         static void removeUser(crow::websocket::connection *conn);
-        static std::unordered_set<crow::websocket::connection *>&getUsers();
+        static std::unordered_set<crow::websocket::connection *> &getUsers();
 
     private:
         static std::map<std::string, HelpDoc> routeHelpDocs;// 存储 HelpDoc 的容器

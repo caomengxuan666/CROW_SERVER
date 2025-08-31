@@ -1,8 +1,8 @@
-#include "GaoDe/GuideSDK.h"
 #include "../Utility/CsvWriter.h"
-#include <vector>
-#include <string>
+#include "GaoDe/GuideSDK.h"
 #include <iostream>
+#include <string>
+#include <vector>
 
 int main() {
     // Step 1: 搜索设备
@@ -13,7 +13,7 @@ int main() {
         return -1;
     }
 
-    CONST CHAR_T* ip = devices[0].ipAddr; // 使用第一个设备的 IP 地址
+    CONST CHAR_T *ip = devices[0].ipAddr;// 使用第一个设备的 IP 地址
     std::cout << "Connecting to device with IP: " << ip << std::endl;
 
     // Step 2: 打开视频流
@@ -36,7 +36,7 @@ int main() {
     std::vector<FLOAT_T> tempMatrix(imgWidth * imgHeight);
 
     // Step 4: 拍照
-    CONST CHAR_T* imgPath = "D:/images";
+    CONST CHAR_T *imgPath = "D:/images";
     IMG_TYPE imgType = ONLY_JPG;
 
     if (TakeScreenshotEx(devID, imgPath, imgType) != GUIDEIR_OK) {

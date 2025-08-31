@@ -16,36 +16,33 @@ Description	:
 extern "C" {
 #endif
 
-typedef enum
-{
-	LOG_DEBUG		= 1,	// 输出 Debug 级别信息 
-	LOG_INFO		= 2,	// 输出 Info 级别信息 
-	LOG_WARN		= 3,	// 输出 Warning 级别信息 
-	LOG_ERROR		= 4,	// 输出 Error 级别信息
-	LOG_FATAL		= 5,	// 输出 Fatal Error 级别信息 
-}LOG_LEVEL_T;
+typedef enum {
+    LOG_DEBUG = 1,// 输出 Debug 级别信息
+    LOG_INFO = 2, // 输出 Info 级别信息
+    LOG_WARN = 3, // 输出 Warning 级别信息
+    LOG_ERROR = 4,// 输出 Error 级别信息
+    LOG_FATAL = 5,// 输出 Fatal Error 级别信息
+} LOG_LEVEL_T;
 
-typedef enum
-{
-	MODULE_LOG		= 0,	// 日志模块
-	MODULE_VIDEO	= 1,	// 视频处理模块
-	MODULE_PORTING	= 2,	// 平台移植模块
-	MODULE_RECORDE	= 3,	// 录像拍照模块
-	MODULE_Y16		= 4,	// Y16处理
-	MODULE_IMAGE	= 5,	// 图像处理
-	MODULE_TEMPE	= 6,	// 测温模块
-	MODULE_STATE	= 7,	// 机芯状态控制
-	MODULE_DEVICE	= 8,	// 设备管理模块
-	MODULE_CONTROL	= 9,	// 调度，机型兼容
-	MODULE_UTIL		= 10,	// 工具集
-}MODULE_T;
+typedef enum {
+    MODULE_LOG = 0,    // 日志模块
+    MODULE_VIDEO = 1,  // 视频处理模块
+    MODULE_PORTING = 2,// 平台移植模块
+    MODULE_RECORDE = 3,// 录像拍照模块
+    MODULE_Y16 = 4,    // Y16处理
+    MODULE_IMAGE = 5,  // 图像处理
+    MODULE_TEMPE = 6,  // 测温模块
+    MODULE_STATE = 7,  // 机芯状态控制
+    MODULE_DEVICE = 8, // 设备管理模块
+    MODULE_CONTROL = 9,// 调度，机型兼容
+    MODULE_UTIL = 10,  // 工具集
+} MODULE_T;
 
-typedef enum
-{
-	DBG_OUTPUT_FILE		= 1,  //日志输出到文件，默认输出方式
-	DBG_OUTPUT_CONSOLE	= 2,  //输出到控制台
-	DBG_OUTPUT_ETHERNET = 3,  //使用网络输出，目前不支持
-}DBG_MODE_T;
+typedef enum {
+    DBG_OUTPUT_FILE = 1,    //日志输出到文件，默认输出方式
+    DBG_OUTPUT_CONSOLE = 2, //输出到控制台
+    DBG_OUTPUT_ETHERNET = 3,//使用网络输出，目前不支持
+} DBG_MODE_T;
 
 /**
 * @brief 日志模块初始化，可重复多次调用。
@@ -78,7 +75,7 @@ INT32_T log_uninit();
 * 例如：MODULE_VIDEO=1  VIDEO模块DEBUG等级以上日志将输出。MODULE_PORTING=3 PORTING模块WARN等级以上日志将输出。
 * 每次打印一行日志上限是8KB。
 */
-INT32_T log_output( MODULE_T module, LOG_LEVEL_T level, CONST CHAR_T *fmt, ...);
+INT32_T log_output(MODULE_T module, LOG_LEVEL_T level, CONST CHAR_T *fmt, ...);
 
 /**
 * @brief 按调试等级输出日志，支持多线程调用。
@@ -106,5 +103,4 @@ INT32_T log_set_path(CONST CHAR_T *path);
 }
 #endif
 
-#endif // !COMMON_LOG_H
-
+#endif// !COMMON_LOG_H

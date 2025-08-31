@@ -20,11 +20,11 @@ extern "C" {
 
 typedef struct
 {
-	UINT32_T flag; 				//0 表示文件节点，1表示目录节点
-	CHAR_T 	 name[NAME_LENGTH]; //节点名字符串，不包含上级路径
-	ULONG_T  size;				//文件大小，是文件时有意义。
-	UINT64_T time;				//修改日期，从1970年1月1日0时0分0秒开始计时的秒数。
-}DIR_T;
+    UINT32_T flag;           //0 表示文件节点，1表示目录节点
+    CHAR_T name[NAME_LENGTH];//节点名字符串，不包含上级路径
+    ULONG_T size;            //文件大小，是文件时有意义。
+    UINT64_T time;           //修改日期，从1970年1月1日0时0分0秒开始计时的秒数。
+} DIR_T;
 
 /**
 * @brief	打开文件
@@ -176,4 +176,4 @@ INT32_T porting_dir_list(CONST CHAR_T *dirname);
 }
 #endif
 
-#endif // !PORTING_FILE_H
+#endif// !PORTING_FILE_H

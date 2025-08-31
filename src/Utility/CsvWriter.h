@@ -15,6 +15,6 @@ namespace Utility {
     class CsvWriter {
     public:
         // 静态方法：写入CSV文件，返回是否成功以及文件路径
-        static std::pair<bool, std::string> writeCsv(const std::string& filePath, const std::vector<std::vector<std::string>>& data);
+        static std::pair<bool, std::string> writeCsv(const std::string &filePath, const std::vector<std::vector<std::string>> &data);
     };
-}
+}// namespace Utility
