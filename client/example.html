@@ -6,47 +6,51 @@
     <title>WebSocket Client</title>
     <style>
         body {
-            font-family: 'Roboto', Arial, sans-serif;
-            margin: 20px;
-            background-color: #f9f9f9;
-            color: #333;
-        }
-        #messages {
-            border: 1px solid #ddd;
-            padding: 15px;
-            height: 250px;
-            overflow-y: auto;
-            margin-bottom: 20px;
-            background-color: #fff;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
         }
         .command-button {
-            background: linear-gradient(145deg, #6dd5ed, #2193b0);
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            background-color: #4CAF50;
             color: white;
             border: none;
-            padding: 10px 20px;
-            margin: 5px;
-            border-radius: 5px;
             cursor: pointer;
-            transition: background 0.3s ease, transform 0.2s ease;
-            font-size: 14px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            font-size: 16px;
         }
         .command-button:hover {
-            background: linear-gradient(145deg, #2193b0, #6dd5ed);
-            transform: scale(1.05);
+            background-color: #45a049;
         }
-        #videoPlayer {
-            width: 100%;
-            height: 400px;
-            margin-top: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        #status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
         }
-        h1, h2 {
-            color: #2193b0;
-            text-align: center;
+        .connected {
+            background-color: #dff0d8;
+            color: #3c763d;
+        }
+        .disconnected {
+            background-color: #f2dede;
+            color: #a94442;
+        }
+        #messages {
+            height: 300px;
+            overflow-y: scroll;
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin: 10px 0;
+            background-color: #f9f9f9;
+        }
+        .message {
+            margin: 5px 0;
+            padding: 5px;
+            border-radius: 3px;
+            background-color: white;
         }
     </style>
     <link href="static/video-js.css" rel="stylesheet">
@@ -55,22 +59,35 @@
     <script src="script/videojs-contrib-hls.min.js"></script>
 </head>
 <body>
-    <h1>WebSocket Client</h1>
-    <div id="messages"></div>
-    <button id="connectButton" class="command-button">Connect</button>
-
-    <h2>Commands</h2>
-    <button class="command-button" onclick="sendCommand({'action': 'record', 'command': 'capture'})">Capture</button>
+    <h1>WebSocket Client for Camera Control</h1>
+    
+    <div id="status" class="disconnected">Disconnected</div>
+    
+    <button class="command-button" onclick="connect()">Connect</button>
+    <button class="command-button" onclick="disconnect()">Disconnect</button>
+    
+    <h2>Camera Commands</h2>
     <button class="command-button" onclick="sendCommand({'action': 'record', 'command': 'start'})">Start Recording</button>
     <button class="command-button" onclick="sendCommand({'action': 'record', 'command': 'stop'})">Stop Recording</button>
+    <button class="command-button" onclick="sendCommand({'action': 'record', 'command': 'capture'})">Capture Photo</button>
+    
+    <h3>Parameter Settings</h3>
     <button class="command-button" onclick="sendCommand({'action': 'setParam', 'paramType': 'PIXEL_FORMAT', 'paramValue': 1})">Set Pixel Format</button>
     <button class="command-button" onclick="sendCommand({'action': 'setParam', 'paramType': 'ADJUST_LIGHT', 'paramValue': {'auto_moudulate': true, 'luminance': 50, 'contrast': 30}})">Adjust Light</button>
     <button class="command-button" onclick="sendCommand({'action': 'setParam', 'paramType': 'PALETTE', 'paramValue': 2})">Set Palette</button>
     <button class="command-button" onclick="sendCommand({'action': 'setParam', 'paramType': 'ELECTRONIC_ZOOM', 'paramValue': 3})">Electronic Zoom</button>
-    <button class="command-button" onclick="sendCommand({'action': 'setParam', 'paramType': 'SHUTTER_CONTROL', 'paramValue': 1})">Shutter Control</button>
+    <button class="command-button" onclick="sendCommand({'action': 'setParam', 'paramType': 'SHUTTER_CONTROL', 'paramValue': {'type': 1}})">Shutter Control</button>
     <button class="command-button" onclick="sendCommand({'action': 'setParam', 'paramType': 'CALC_PARAMETER', 'paramValue': {'emiss': 0.95, 'distance': 10.0, 'humidity': 50, 'backTemp': 25.0, 'backFlag': 1, 'B': 0.1, 'KF': 1, 'transmittance': 0.8, 'coef0': 1, 'coef1': 2}})">Calc Parameter</button>
     <button class="command-button" onclick="sendCommand({'action': 'setParam', 'paramType': 'DEVICE_PORT', 'paramValue': [1, 8080]})">Set Device Port</button>
     <button class="command-button" onclick="sendCommand({'action': 'setParam', 'paramType': 'ALARM_INFO', 'paramValue': {'state': 1, 'highLimit': 100, 'lowLimit': 0, 'mode': 2}})">Set Alarm Info</button>
+    <button class="command-button" onclick="sendCommand({'action': 'setParam', 'paramType': 'FOCUS_CONTROL', 'paramValue': {'type': 1}})">Focus Control</button>
+    <button class="command-button" onclick="sendCommand({'action': 'setParam', 'paramType': 'ROTATE_TYPE', 'paramValue': 1})">Set Rotate Type</button>
+    <button class="command-button" onclick="sendCommand({'action': 'setParam', 'paramType': 'SHOW_PALETTE', 'paramValue': 1})">Show Palette</button>
+    <button class="command-button" onclick="sendCommand({'action': 'setParam', 'paramType': 'DEVICE_PARAMETER', 'paramValue': {'type': 1}})">Device Parameter</button>
+    <button class="command-button" onclick="sendCommand({'action': 'setParam', 'paramType': 'TEMP_LABEL', 'paramValue': {'type': 1}})">Temp Label Control</button>
+    
+    <h3>Messages</h3>
+    <div id="messages"></div>
 
     <h2>Video Stream</h2>
     <button id="startVideoButton" class="command-button">Start Video Stream</button>

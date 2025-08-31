@@ -1,35 +1,43 @@
 #pragma once
+#include "../Utility/CsvWriter.h"
 #include "GaoDe/SDKParams.h"
 #include "GaoDe/common_type.h"
+#include "PebbleLog.h"
 #include <GaoDe/GuideSDK.h>
 #include <GaoDe/porting_file.h>
 #include <cassert>
+#include <chrono>
 #include <condition_variable>
 #include <ctime>
 #include <filesystem>
 #include <iomanip>
+#include <iostream>
 #include <mutex>
 #include <ostream>
 #include <sstream>
 #include <thread>
-#include "../Utility/CsvWriter.h"
-#include <chrono>
-#include "PebbleLog.h"
-
 
 void onStateChanged(GD_STATE_INFO info, VOID *param) {
     //提示网络断开或者连上
 }
 // 定义相机参数类型枚举
 enum class CameraParamType {
-    PIXEL_FORMAT,   // 像素格式
-    ADJUST_LIGHT,   // 调整光线参数
-    PALETTE,        // 调色板索引
-    ELECTRONIC_ZOOM,// 电子变焦级别
-    SHUTTER_CONTROL,// 快门控制类型
-    CALC_PARAMETER, // 计算参数
-    DEVICE_PORT,    // 设备端口信息
-    ALARM_INFO      // 报警信息
+    PIXEL_FORMAT,    // 像素格式
+    ADJUST_LIGHT,    // 调整光线参数
+    PALETTE,         // 调色板索引
+    ELECTRONIC_ZOOM, // 电子变焦级别
+    SHUTTER_CONTROL, // 快门控制类型
+    CALC_PARAMETER,  // 计算参数
+    DEVICE_PORT,     // 设备端口信息
+    ALARM_INFO,      // 报警信息
+    FOCUS_CONTROL,   // 调焦控制
+    ROTATE_TYPE,     // 图像翻转方式
+    SHOW_PALETTE,    // 色带叠加显示
+    IEE_PARAMETER,   // 细节增强参数
+    DEVICE_PARAMETER,// 设备参数（测温档位、串口比特率等）
+    PLP_CONTROL,     // 分析对象控制
+    TEMP_LABEL,      // 温度标签控制
+    SHIELD_AREA      // 阴影区域设置
 };
 
 class VideoCamera {
@@ -72,7 +80,7 @@ public:
     **/
     void disconnect();
 
-        // 静态适配器函数
+    // 静态适配器函数
     static void StaticOnRgbData(GD_RGB_INFO Info, VOID *param) {
         static_cast<VideoCamera *>(param)->onRgbData(Info, param);
     }
@@ -96,7 +104,7 @@ public:
     const bool isInit() const { return _isInit; }
 
     //获取我们的CSV保存路径
-    const std::string getCsvPath() {return _csvPath;}
+    const std::string getCsvPath() { return _csvPath; }
 
 
 private:
@@ -111,8 +119,8 @@ private:
     VideoCamera &operator=(const VideoCamera &) = delete;// 删除赋值操作符
 
     bool _isFree;
-    bool _isRecording;// 标记是否正在录制
-    bool _isShoting=true;    //标记是否正在拍照
+    bool _isRecording;     // 标记是否正在录制
+    bool _isShoting = true;//标记是否正在拍照
     int _camereid;
     bool _isInit;
     std::mutex _mutex;
@@ -154,20 +162,18 @@ inline VideoCamera::VideoCamera() : _isFree(true), _isRecording(false), _camerei
         //打印VideoCamera可用
         PebbleLog::info("VideoCamera is available.");
         PebbleLog::info("Video DEVICE INDEX IS: " + std::to_string(_camereid));
-    }
-    else{
+    } else {
         PebbleLog::error("VideoCamera is unavailable!");
     }
 
-        OpenStream(
+    OpenStream(
             _camereid,
-            &VideoCamera::StaticOnRgbData,                    // 普通函数
-            nullptr,// 静态成员函数
+            &VideoCamera::StaticOnRgbData,// 普通函数
+            nullptr,                      // 静态成员函数
             nullptr,
             this,// 传递 this 指针
             H264_MODE,
             0);
-
 }
 
 inline VideoCamera::~VideoCamera() {
@@ -199,7 +205,7 @@ inline void VideoCamera::onRgbData(GD_RGB_INFO info, VOID *param) {
 
     if (GetTempMatrixEx(_camereid, tempMatrix.data(), imgWidth, imgHeight) != GUIDEIR_OK) {
         std::cerr << "Failed to get temperature matrix." << std::endl;
-        return ;
+        return;
     }
 
     std::vector<std::vector<std::string>> csvData(imgHeight, std::vector<std::string>(imgWidth));
@@ -209,7 +215,7 @@ inline void VideoCamera::onRgbData(GD_RGB_INFO info, VOID *param) {
         }
     }
 
-     // 获取当前时间
+    // 获取当前时间
     auto now = std::chrono::system_clock::now();
     std::time_t now_time = std::chrono::system_clock::to_time_t(now);
     std::tm now_tm = *std::localtime(&now_time);
@@ -230,7 +236,7 @@ inline void VideoCamera::onRgbData(GD_RGB_INFO info, VOID *param) {
     if (!csvResult.first) {
         PebbleLog::error("Failed to write CSV file");
     } else {
-        PebbleLog::info("Temperature matrix saved to:  {}" ,csvResult.second);
+        PebbleLog::info("Temperature matrix saved to:  {}", csvResult.second);
     }
     _isShoting = false;
     return;
@@ -260,23 +266,22 @@ inline void VideoCamera::takeShot() {
     }
 
     _isShoting = true;
-    
+
     static int first_init = 0;
     if (first_init == 0) {
         std::this_thread::sleep_for(std::chrono::seconds(1));
         first_init = 1;
     }
- 
+
 
     // 拍摄图片
-    PebbleLog::info("_camera ID: {}",_camereid);
+    PebbleLog::info("_camera ID: {}", _camereid);
     INT32_T result = TakeScreenshotEx(_camereid, imgPath, IMG_TYPE::ONLY_JPG);
     if (result == GUIDEIR_OK || result == 1) {
-        PebbleLog::info("Image captured successfully: {}",std::string(imgPath));
+        PebbleLog::info("Image captured successfully: {}", std::string(imgPath));
     } else {
         PebbleLog::error("Failed to capture image. Error code: " + std::to_string(result));
     }
-    
 }
 
 inline void VideoCamera::startRecording() {
@@ -382,8 +387,8 @@ inline void VideoCamera::setParams(CameraParamType paramType, const void *param)
             break;
         }
         case CameraParamType::SHUTTER_CONTROL: {
-            auto shutterType = *static_cast<const CMD_SHUTTER_TYPE *>(param);
-            result = ShutterControlEx(_camereid, shutterType, nullptr);
+            auto shutterParams = *static_cast<const std::pair<CMD_SHUTTER_TYPE, void *> *>(param);
+            result = ShutterControlEx(_camereid, shutterParams.first, shutterParams.second);
             break;
         }
         case CameraParamType::CALC_PARAMETER: {
@@ -399,6 +404,46 @@ inline void VideoCamera::setParams(CameraParamType paramType, const void *param)
         case CameraParamType::ALARM_INFO: {
             auto alarmInfo = *static_cast<const ALARM_INFO *>(param);
             result = SetAlarm(_camereid, alarmInfo);
+            break;
+        }
+        case CameraParamType::FOCUS_CONTROL: {
+            auto focusParams = *static_cast<const std::pair<CMD_FOCUS_TYPE, void *> *>(param);
+            result = FocusControlEx(_camereid, focusParams.first, focusParams.second);
+            break;
+        }
+        case CameraParamType::ROTATE_TYPE: {
+            auto rotateType = *static_cast<const ROTATE_TYPE *>(param);
+            result = SetRotateType(_camereid, rotateType);
+            break;
+        }
+        case CameraParamType::SHOW_PALETTE: {
+            auto showPaletteType = *static_cast<const SHOW_PALETTE_TYPE *>(param);
+            result = ShowPaletteEx(_camereid, showPaletteType);
+            break;
+        }
+        case CameraParamType::IEE_PARAMETER: {
+            auto ieeParams = *static_cast<const IEE_PARAMS *>(param);
+            result = SetIEEParameter(_camereid, ieeParams);
+            break;
+        }
+        case CameraParamType::DEVICE_PARAMETER: {
+            auto deviceParam = *static_cast<const std::pair<DEVICE_PARAM_TYPE, void *> *>(param);
+            result = SetDeviceParameter(_camereid, deviceParam.first, deviceParam.second);
+            break;
+        }
+        case CameraParamType::PLP_CONTROL: {
+            // 注意：PLP控制需要更复杂的参数处理，这里简化处理
+            std::cerr << "PLP control requires special handling, not supported in this generic method." << std::endl;
+            return;
+        }
+        case CameraParamType::TEMP_LABEL: {
+            auto tempLabelParams = *static_cast<const std::pair<CMD_TRMPLABEL_TYPE, void *> *>(param);
+            result = TempLabelControl(_camereid, tempLabelParams.first, tempLabelParams.second);
+            break;
+        }
+        case CameraParamType::SHIELD_AREA: {
+            auto shieldArea = *static_cast<const IPT_SHIELDAREA *>(param);
+            result = SetShieldArea(_camereid, shieldArea);
             break;
         }
         default:

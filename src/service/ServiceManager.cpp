@@ -58,7 +58,7 @@ namespace service {
                      conn.send_text(R"({"status": "error", "message": "Invalid sub-command for 'record'.})");
                  }
              }},
-            // 新增 setParam 命令处理逻辑
+            // setParam 命令处理逻辑
             {"setParam", [](crow::websocket::connection &conn, const std::string &command) {
                  auto &camera = VideoCamera::getInstance();
                  crow::json::rvalue msg = crow::json::load(command);
@@ -85,6 +85,20 @@ namespace service {
                      paramType = CameraParamType::DEVICE_PORT;
                  } else if (paramTypeStr == "ALARM_INFO") {
                      paramType = CameraParamType::ALARM_INFO;
+                 } else if (paramTypeStr == "FOCUS_CONTROL") {
+                     paramType = CameraParamType::FOCUS_CONTROL;
+                 } else if (paramTypeStr == "ROTATE_TYPE") {
+                     paramType = CameraParamType::ROTATE_TYPE;
+                 } else if (paramTypeStr == "SHOW_PALETTE") {
+                     paramType = CameraParamType::SHOW_PALETTE;
+                 } else if (paramTypeStr == "IEE_PARAMETER") {
+                     paramType = CameraParamType::IEE_PARAMETER;
+                 } else if (paramTypeStr == "DEVICE_PARAMETER") {
+                     paramType = CameraParamType::DEVICE_PARAMETER;
+                 } else if (paramTypeStr == "TEMP_LABEL") {
+                     paramType = CameraParamType::TEMP_LABEL;
+                 } else if (paramTypeStr == "SHIELD_AREA") {
+                     paramType = CameraParamType::SHIELD_AREA;
                  } else {
                      conn.send_text(R"({"status": "error", "message": "Invalid 'paramType'."})");
                      return;
@@ -117,8 +131,11 @@ namespace service {
                          break;
                      }
                      case CameraParamType::SHUTTER_CONTROL: {
-                         CMD_SHUTTER_TYPE shutterType = static_cast<CMD_SHUTTER_TYPE>(msg["paramValue"].i());
-                         paramValue = &shutterType;
+                         // 快门控制需要类型和参数
+                         CMD_SHUTTER_TYPE shutterType = static_cast<CMD_SHUTTER_TYPE>(msg["paramValue"]["type"].i());
+                         // 对于快门控制，参数可能为空，这里简单处理为nullptr
+                         std::pair<CMD_SHUTTER_TYPE, void*> shutterParams(shutterType, nullptr);
+                         paramValue = &shutterParams;
                          break;
                      }
                      case CameraParamType::CALC_PARAMETER: {
@@ -150,6 +167,49 @@ namespace service {
                          alarmInfo.lowLimit = msg["paramValue"]["lowLimit"].i();
                          alarmInfo.mode = msg["paramValue"]["mode"].i();
                          paramValue = &alarmInfo;
+                         break;
+                     }
+                     case CameraParamType::FOCUS_CONTROL: {
+                         CMD_FOCUS_TYPE focusType = static_cast<CMD_FOCUS_TYPE>(msg["paramValue"]["type"].i());
+                         // 对于调焦控制，参数可能为空，这里简单处理为nullptr
+                         std::pair<CMD_FOCUS_TYPE, void*> focusParams(focusType, nullptr);
+                         paramValue = &focusParams;
+                         break;
+                     }
+                     case CameraParamType::ROTATE_TYPE: {
+                         ROTATE_TYPE rotateType = static_cast<ROTATE_TYPE>(msg["paramValue"].i());
+                         paramValue = &rotateType;
+                         break;
+                     }
+                     case CameraParamType::SHOW_PALETTE: {
+                         SHOW_PALETTE_TYPE showPaletteType = static_cast<SHOW_PALETTE_TYPE>(msg["paramValue"].i());
+                         paramValue = &showPaletteType;
+                         break;
+                     }
+                     case CameraParamType::IEE_PARAMETER: {
+                         IEE_PARAMS ieeParams;
+                         //todo 简化处理，实际应用中需要根据具体参数设置
+                         paramValue = &ieeParams;
+                         break;
+                     }
+                     case CameraParamType::DEVICE_PARAMETER: {
+                         DEVICE_PARAM_TYPE deviceParamType = static_cast<DEVICE_PARAM_TYPE>(msg["paramValue"]["type"].i());
+                         //todo 对于设备参数，参数可能为空，这里简单处理为nullptr
+                         std::pair<DEVICE_PARAM_TYPE, void*> deviceParam(deviceParamType, nullptr);
+                         paramValue = &deviceParam;
+                         break;
+                     }
+                     case CameraParamType::TEMP_LABEL: {
+                         CMD_TRMPLABEL_TYPE labelType = static_cast<CMD_TRMPLABEL_TYPE>(msg["paramValue"]["type"].i());
+                         //todo 对于温度标签控制，参数可能为空，这里简单处理为nullptr
+                         std::pair<CMD_TRMPLABEL_TYPE, void*> labelParams(labelType, nullptr);
+                         paramValue = &labelParams;
+                         break;
+                     }
+                     case CameraParamType::SHIELD_AREA: {
+                         IPT_SHIELDAREA shieldArea;
+                         //todo 简化处理，实际应用中需要根据具体参数设置
+                         paramValue = &shieldArea;
                          break;
                      }
                      default:
