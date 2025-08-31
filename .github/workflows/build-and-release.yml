@@ -42,7 +42,9 @@ jobs:
             -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} ^
             -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} ^
             -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} ^
-            -DCROW_FEATURES="asio"
+            -DCROW_FEATURES="asio" ^
+            -DCMAKE_CXX_FLAGS="/D_WIN32_WINNT=0x0601" ^
+            -DCMAKE_LIBRARY_PATH="${{ github.workspace }}/dll/win64"
 
       - name: Build (Windows)
         if: matrix.is_windows
