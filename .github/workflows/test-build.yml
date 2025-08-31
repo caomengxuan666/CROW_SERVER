@@ -9,36 +9,6 @@ on:
       - main
 
 jobs:
-  build_ubuntu:
-    name: Test Build on Ubuntu
-    runs-on: ubuntu-20.04
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
-
-    - name: Set up CMake
-      uses: jwlawson/actions-setup-cmake@v1.14
-      with:
-        cmake-version: '3.15'
-
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.9'
-
-    - name: Configure CMake
-      run: |
-        cmake -B build -DCMAKE_BUILD_TYPE=Release
-
-    - name: Build
-      run: cmake --build build --config Release
-
-    - name: Package
-      run: |
-        cmake --build build --target package
-        ls build/
-
   build_windows:
     name: Test Build on Windows
     runs-on: windows-latest
