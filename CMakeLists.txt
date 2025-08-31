@@ -6,9 +6,11 @@ project(Diabetes-server LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
+set(ASIO_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party/asio/asio/include)
+set(asio_FOUND TRUE)
+# 避免 Findasio.cmake 再去瞎找
+set(asio_INCLUDE_DIR ${ASIO_INCLUDE_DIR})
 
-# 添加third_party/crow到包含路径
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/third_party/crow/include)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/third_party/asio/asio/include)
 # 添加子目录
 add_subdirectory(src)
