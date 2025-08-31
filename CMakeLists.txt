@@ -9,7 +9,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 # 添加third_party/crow到包含路径
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/third_party/crow/include)
-
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/third_party/asio/asio/include)
 # 添加子目录
 add_subdirectory(src)
 
