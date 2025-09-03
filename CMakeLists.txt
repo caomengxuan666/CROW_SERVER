@@ -12,6 +12,7 @@ set(asio_FOUND TRUE)
 set(asio_INCLUDE_DIR ${ASIO_INCLUDE_DIR})
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/third_party/asio/asio/include)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/third_party)
 # 添加子目录
 add_subdirectory(src)
 
@@ -22,6 +23,8 @@ function(copy_resources)
     file(COPY debug.cfg DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/src/controller)
     message(STATUS "copy debug.cfg to ${CMAKE_CURRENT_BINARY_DIR}/src/controller")
     file(COPY debug.cfg DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/src/service)
+    file(COPY crow_server.ini DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/src/controller)
+    message(STATUS "copy crow_server.ini to ${CMAKE_CURRENT_BINARY_DIR}/src/controller")
 endfunction()
 
 copy_resources()

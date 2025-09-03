@@ -1,5 +1,6 @@
 #pragma once
 #include "../Utility/CsvWriter.h"
+#include "../Utility/ConfigManager.hpp"
 #include "GaoDe/SDKParams.h"
 #include "GaoDe/common_type.h"
 #include "PebbleLog.h"
@@ -16,10 +17,11 @@
 #include <ostream>
 #include <sstream>
 #include <thread>
-
-void onStateChanged(GD_STATE_INFO info, VOID *param) {
+inline void onStateChanged(GD_STATE_INFO info, VOID *param) {
     //提示网络断开或者连上
 }
+
+
 // 定义相机参数类型枚举
 enum class CameraParamType {
     PIXEL_FORMAT,    // 像素格式
@@ -103,8 +105,16 @@ public:
 
     const bool isInit() const { return _isInit; }
 
-    //获取我们的CSV保存路径
-    const std::string getCsvPath() { return _csvPath; }
+    // 获取CSV保存路径
+    const std::string getCsvPath() {
+        // 从配置中获取CSV保存路径
+        std::string csvBasePath = crow_server::config::getGlobalConfig().output.csv_path;
+        // 确保路径以斜杠结尾
+        if (!csvBasePath.empty() && csvBasePath.back() != '/' && csvBasePath.back() != '\\') {
+            csvBasePath += "/";
+        }
+        return csvBasePath;
+    }
 
 
 private:
@@ -136,7 +146,9 @@ inline VideoCamera::VideoCamera() : _isFree(true), _isRecording(false), _camerei
     //彩色打印，显示VideoCamera对象产生
     PebbleLog::info("VideoCamera object created.");
 
-    _camereid = GetDeviceIDNotConnected("192.168.1.168");
+    // 从配置中获取设备IP
+    std::string deviceIp = crow_server::config::getGlobalConfig().device.ip;
+    _camereid = GetDeviceIDNotConnected(deviceIp.c_str());
     if (_camereid <= 0) {
         PebbleLog::error("Failed to get device ID!");
     } else {
@@ -152,12 +164,20 @@ inline VideoCamera::VideoCamera() : _isFree(true), _isRecording(false), _camerei
             _pwd = info.passWord;
             PebbleLog::info("UserName: " + _usrName);
             PebbleLog::info("Password: " + _pwd);
+            // 从配置中获取流媒体端口
+            std::string rtmpPort = crow_server::config::getGlobalConfig().stream.rtmp_port; // 从配置中读取RTMP端口
+            
             // 拼接 RTSP URL
-            _rtsp_url = "rtsp://" + _usrName + ":" + _pwd + "@192.168.1.168:8554/video";
+            _rtsp_url = "rtsp://" + _usrName + ":" + _pwd + "@" + deviceIp + ":" + rtmpPort + "/video";
             PebbleLog::info("RTSP URL: " + _rtsp_url);
         } else {
             PebbleLog::info("Using default username and password instead");
-            _rtsp_url = "rtsp://192.168.1.168:8554/video";
+            // 从配置中获取流媒体端口
+            std::string rtmpPort = crow_server::config::getGlobalConfig().stream.rtmp_port;
+
+            // 拼接 RTSP URL
+            _rtsp_url = "rtsp://" + _usrName + ":" + _pwd + "@" + deviceIp + ":" + rtmpPort + "/video";
+            PebbleLog::info("RTSP URL: " + _rtsp_url);
         }
         //打印VideoCamera可用
         PebbleLog::info("VideoCamera is available.");
@@ -223,9 +243,23 @@ inline void VideoCamera::onRgbData(GD_RGB_INFO info, VOID *param) {
     // 获取当前时间的秒数
     auto now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;
 
+    // 获取配置中的CSV路径
+    std::string csvBasePath = crow_server::config::getGlobalConfig().output.csv_path;
+    
+    // 确保路径以斜杠结尾
+    if (!csvBasePath.empty() && csvBasePath.back() != '/' && csvBasePath.back() != '\\') {
+        csvBasePath += "/";
+    }
+    
+    // 确保目录存在
+    std::filesystem::path dirPath = csvBasePath;
+    if (!std::filesystem::exists(dirPath)) {
+        std::filesystem::create_directories(dirPath);
+    }
+
     // 格式化时间字符串
     std::ostringstream oss;
-    oss << "temperature_matrix_"
+    oss << csvBasePath << "temperature_matrix_"
         << std::put_time(&now_tm, "%Y%m%d_%H%M%S")
         << "_" << std::setw(3) << std::setfill('0') << now_ms.count()
         << ".csv";
@@ -300,14 +334,22 @@ inline void VideoCamera::startRecording() {
     std::time_t now_time = std::chrono::system_clock::to_time_t(now);
     std::tm now_tm = *std::localtime(&now_time);
 
+    // 获取配置中的视频路径
+    std::string videoBasePath = crow_server::config::getGlobalConfig().output.image_path;
+    
+    // 确保路径以斜杠结尾
+    if (!videoBasePath.empty() && videoBasePath.back() != '/' && videoBasePath.back() != '\\') {
+        videoBasePath += "/";
+    }
+    
     std::ostringstream oss;
-    oss << "D:/videos/recording_"
+    oss << videoBasePath << "recording_"
         << std::put_time(&now_tm, "%Y%m%d_%H%M%S")
         << ".mp4";
     std::string videoPath = oss.str();
 
     // 确保目录存在
-    std::filesystem::path dirPath = "D:/videos";
+    std::filesystem::path dirPath = videoBasePath;
     if (!std::filesystem::exists(dirPath)) {
         std::filesystem::create_directories(dirPath);
     }

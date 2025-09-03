@@ -14,6 +14,9 @@
 #include <crow/app.h>
 #include <crow/http_request.h>
 #include <crow/websocket.h>
+#include <iostream>
+#include <thread>
+#include <chrono>
 
 namespace routes {
     class RouteManager {
@@ -21,6 +24,8 @@ namespace routes {
         crow::SimpleApp app;
 
         void bindHttpRoutes() {
+            std::cout << "Binding HTTP routes..." << std::endl;
+            
             // 注册根路由
             CROW_ROUTE(app, "/")
             ([this] {// 捕获 this 指针
@@ -48,9 +53,13 @@ namespace routes {
                 return service::HttpServiceManager::handleUserLists();
             });
             HelpDocManager::registerHelpDoc("/usrs", Protocol::HTTP, "User route", {"GET"}, "{}", "{\"status\": \"success\", \"users\": [{\"id\": 1, \"name\": \"user1\"}, {\"id\": 2, \"name\": \"user2\"}]}", {}, "admin", VERSIONS, "User route description");
+            
+            std::cout << "HTTP routes bound." << std::endl;
         }
 
         void bindWebsocketRoutes() {
+            std::cout << "Binding WebSocket routes..." << std::endl;
+            
             CROW_WEBSOCKET_ROUTE(app, "/video")
                     .onaccept([](const crow::request &req, void **) -> bool {
                         return service::WebSocketServiceManager::OnVideoAccept();
@@ -69,18 +78,41 @@ namespace routes {
                     });
             HelpDocManager::registerHelpDoc("/ws/video", Protocol::HTTP, "WebSocket online video stream/take a shot/video record",
                                             {"NONE"}, "", "", {}, "", VERSIONS, "RTSP will run at rtsp://192.168.1.168:8554/video as default.");
+            
+            std::cout << "WebSocket routes bound." << std::endl;
         }
 
 
     public:
-        RouteManager() {}
+        RouteManager() {
+            std::cout << "RouteManager constructor called." << std::endl;
+        }
 
         void run() {
+            std::cout << "RouteManager::run() called." << std::endl;
+            
             CustomLogger logger{2};
             crow::logger::setHandler(&logger);
+            
+            std::cout << "Binding routes..." << std::endl;
             bindHttpRoutes();
             bindWebsocketRoutes();
-            app.bindaddr("127.0.0.1").port(8081).run();
+            
+            std::cout << "Starting server on 127.0.0.1:8081..." << std::endl;
+            // 在单独的线程中运行服务器
+            std::thread server_thread([this]() {
+                app.bindaddr("127.0.0.1").port(8081).run();
+            });
+            
+            // 分离线程，使其在后台运行
+            server_thread.detach();
+            
+            std::cout << "Server started. Press Enter to stop..." << std::endl;
+            std::cin.get(); // 等待用户输入
+            
+            std::cout << "Stopping server..." << std::endl;
+            app.stop();
+            std::cout << "Server stopped." << std::endl;
         }
 
         std::string getRouteHelp() {
