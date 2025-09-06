@@ -86,6 +86,29 @@
     <button class="command-button" onclick="sendCommand({'action': 'setParam', 'paramType': 'DEVICE_PARAMETER', 'paramValue': {'type': 1}})">Device Parameter</button>
     <button class="command-button" onclick="sendCommand({'action': 'setParam', 'paramType': 'TEMP_LABEL', 'paramValue': {'type': 1}})">Temp Label Control</button>
     
+    <h3>Direct Control Commands</h3>
+    <button class="command-button" onclick="sendCommand({'action': 'shutter', 'type': 3})">Shutter Now</button>
+    <button class="command-button" onclick="sendCommand({'action': 'focus', 'type': 3})">Auto Focus</button>
+    <button class="command-button" onclick="sendCommand({'action': 'palette', 'index': 5})">Set Palette to Index 5</button>
+    <button class="command-button" onclick="sendCommand({'action': 'zoom', 'level': 2})">Set Zoom Level 2</button>
+    
+    <h3>Device Information Commands</h3>
+    <button class="command-button" onclick="sendCommand({'action': 'getDeviceInfo'})">Get Device Info</button>
+    <button class="command-button" onclick="sendCommand({'action': 'getDeviceNetInfo'})">Get Network Info</button>
+    <button class="command-button" onclick="sendCommand({'action': 'getDeviceURLInfo'})">Get URL Info</button>
+    
+    <h3>Temperature Analysis Commands</h3>
+    <button class="command-button" onclick="sendCommand({'action': 'getTempMatrix'})">Get Temperature Matrix</button>
+    
+    <h3>Calibration Commands</h3>
+    <button class="command-button" onclick="sendCommand({
+        'action': 'correctByTwoPoint',
+        'blackbody_first_temp': 30.0,
+        'blackbody_seconed_temp': 40.0,
+        'blackbody_first_point': {'x': 100, 'y': 100},
+        'blackbody_seconed_point': {'x': 200, 'y': 200}
+    })">Two-Point Correction</button>
+    
     <h3>Messages</h3>
     <div id="messages"></div>
 

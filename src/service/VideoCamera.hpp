@@ -101,7 +101,7 @@ public:
     const bool isFree() const { return _isFree; }
     void setFree(bool free) { _isFree = free; }
 
-    const INT32_T getCameraID() const { return _camereid; }
+    const INT32_T getCameraId() const { return _camereid; }
 
     const bool isInit() const { return _isInit; }
 

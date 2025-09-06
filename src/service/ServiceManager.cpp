@@ -52,7 +52,7 @@ namespace service {
                      std::cout << "capture!" << std::endl;
                      camera.takeShot();
                      auto csvpath = camera.getCsvPath();
-                     std::string response = R"({"status": "success", "message": "Photo captured at ", "file_path": "')" + csvpath + R"("})";
+                     std::string response = R"({"status": "success", "message": "Photo captured at ", "file_path": ")" + csvpath + R"("})";
                      conn.send_text(response);
                  } else {
                      conn.send_text(R"({"status": "error", "message": "Invalid sub-command for 'record'.})");
@@ -219,6 +219,218 @@ namespace service {
 
                  camera.setParams(paramType, paramValue);
                  conn.send_text(R"({"status": "success", "message": "Parameter set successfully!"})");
+             }},
+            // 添加快门控制命令
+            {"shutter", [](crow::websocket::connection &conn, const std::string &command) {
+                 auto &camera = VideoCamera::getInstance();
+                 crow::json::rvalue msg = crow::json::load(command);
+                 if (!msg || !msg.has("type")) {
+                     conn.send_text(R"({"status": "error", "message": "Missing 'type' field for shutter control."})");
+                     return;
+                 }
+
+                 CMD_SHUTTER_TYPE shutterType = static_cast<CMD_SHUTTER_TYPE>(msg["type"].i());
+                 std::pair<CMD_SHUTTER_TYPE, void*> shutterParams(shutterType, nullptr);
+                 
+                 camera.setParams(CameraParamType::SHUTTER_CONTROL, &shutterParams);
+                 conn.send_text(R"({"status": "success", "message": "Shutter control command sent!"})");
+             }},
+            // 添加调焦控制命令
+            {"focus", [](crow::websocket::connection &conn, const std::string &command) {
+                 auto &camera = VideoCamera::getInstance();
+                 crow::json::rvalue msg = crow::json::load(command);
+                 if (!msg || !msg.has("type")) {
+                     conn.send_text(R"({"status": "error", "message": "Missing 'type' field for focus control."})");
+                     return;
+                 }
+
+                 CMD_FOCUS_TYPE focusType = static_cast<CMD_FOCUS_TYPE>(msg["type"].i());
+                 std::pair<CMD_FOCUS_TYPE, void*> focusParams(focusType, nullptr);
+                 
+                 camera.setParams(CameraParamType::FOCUS_CONTROL, &focusParams);
+                 conn.send_text(R"({"status": "success", "message": "Focus control command sent!"})");
+             }},
+            // 添加色带控制命令
+            {"palette", [](crow::websocket::connection &conn, const std::string &command) {
+                 auto &camera = VideoCamera::getInstance();
+                 crow::json::rvalue msg = crow::json::load(command);
+                 if (!msg || !msg.has("index")) {
+                     conn.send_text(R"({"status": "error", "message": "Missing 'index' field for palette control."})");
+                     return;
+                 }
+
+                 INT32_T paletteIndex = msg["index"].i();
+                 
+                 camera.setParams(CameraParamType::PALETTE, &paletteIndex);
+                 conn.send_text(R"({"status": "success", "message": "Palette changed successfully!"})");
+             }},
+            // 添加电子变焦控制命令
+            {"zoom", [](crow::websocket::connection &conn, const std::string &command) {
+                 auto &camera = VideoCamera::getInstance();
+                 crow::json::rvalue msg = crow::json::load(command);
+                 if (!msg || !msg.has("level")) {
+                     conn.send_text(R"({"status": "error", "message": "Missing 'level' field for zoom control."})");
+                     return;
+                 }
+
+                 GD_ZOOM_SCALE zoomLevel = static_cast<GD_ZOOM_SCALE>(msg["level"].i());
+                 
+                 camera.setParams(CameraParamType::ELECTRONIC_ZOOM, &zoomLevel);
+                 conn.send_text(R"({"status": "success", "message": "Zoom level changed successfully!"})");
+             }},
+            // 添加查询设备信息命令
+            {"getDeviceInfo", [](crow::websocket::connection &conn, const std::string &command) {
+                 auto &camera = VideoCamera::getInstance();
+                 if (!camera.isInit() || camera.getCameraId() <= 0) {
+                     conn.send_text(R"({"status": "error", "message": "Camera not initialized or invalid device ID!"})");
+                     return;
+                 }
+                 
+                 DEVICE_INFO devInfo;
+                 INT32_T result = GetDeviceInfo(camera.getCameraId(), &devInfo);
+                 
+                 if (result == GUIDEIR_OK) {
+                     crow::json::wvalue response;
+                     response["status"] = "success";
+                     response["message"] = "Device info retrieved successfully";
+                     response["devID"] = devInfo.devID;
+                     response["devName"] = std::string(devInfo.devName);
+                     response["imgWidth"] = devInfo.imgWidth;
+                     response["imgHeight"] = devInfo.imgHeight;
+                     response["serialNum"] = std::string(devInfo.serialNum);
+                     response["macAddr"] = std::string(devInfo.macAddr);
+                     response["ipAddr"] = std::string(devInfo.ipAddr);
+                     response["subNetMask"] = std::string(devInfo.subNetMask);
+                     response["gateway"] = std::string(devInfo.gateway);
+                     response["dnsAddr"] = std::string(devInfo.dnsAddr);
+                     response["armPort"] = devInfo.armPort;
+                     response["fpgaPort"] = devInfo.fpgaPort;
+                     response["y16Port"] = devInfo.y16Port;
+                     response["model"] = std::string(devInfo.model);
+                     response["isConnected"] = devInfo.isConnected;
+                     response["workingMode"] = static_cast<int>(devInfo.workingMode);
+                     
+                     conn.send_text(response.dump());
+                 } else {
+                     conn.send_text(R"({"status": "error", "message": "Failed to get device info. Error code: )" + std::to_string(result) + R"("})");
+                 }
+             }},
+            // 添加获取温度矩阵命令
+            {"getTempMatrix", [](crow::websocket::connection &conn, const std::string &command) {
+                 auto &camera = VideoCamera::getInstance();
+                 if (!camera.isInit() || camera.getCameraId() <= 0) {
+                     conn.send_text(R"({"status": "error", "message": "Camera not initialized or invalid device ID!"})");
+                     return;
+                 }
+                 
+                 // 获取设备信息以确定图像尺寸
+                 DEVICE_INFO devInfo;
+                 INT32_T result = GetDeviceInfo(camera.getCameraId(), &devInfo);
+                 
+                 if (result != GUIDEIR_OK) {
+                     conn.send_text(R"({"status": "error", "message": "Failed to get device info. Error code: )" + std::to_string(result) + R"("})");
+                     return;
+                 }
+                 
+                 // 分配温度矩阵内存
+                 int matrixSize = devInfo.imgWidth * devInfo.imgHeight;
+                 std::vector<FLOAT_T> tempMatrix(matrixSize);
+                 
+                 result = GetTempMatrixEx(camera.getCameraId(), tempMatrix.data(), devInfo.imgWidth, devInfo.imgHeight);
+                 
+                 if (result == GUIDEIR_OK) {
+                     // 构建响应数据
+                     crow::json::wvalue response;
+                     response["status"] = "success";
+                     response["message"] = "Temperature matrix retrieved successfully";
+                     response["width"] = devInfo.imgWidth;
+                     response["height"] = devInfo.imgHeight;
+                     
+                     // 添加温度数据（直接构造JSON数组）
+                     crow::json::wvalue tempDataArray;
+                     tempDataArray = std::vector<double>(tempMatrix.begin(), tempMatrix.end());
+                     response["tempMatrix"] = std::move(tempDataArray);
+                     
+                     conn.send_text(response.dump());
+                 } else {
+                     conn.send_text(R"({"status": "error", "message": "Failed to get temperature matrix. Error code: )" + std::to_string(result) + R"("})");
+                 }
+             }},
+            // 添加获取设备网络信息命令
+            {"getDeviceNetInfo", [](crow::websocket::connection &conn, const std::string &command) {
+                 auto &camera = VideoCamera::getInstance();
+                 if (!camera.isInit() || camera.getCameraId() <= 0) {
+                     conn.send_text(R"({"status": "error", "message": "Camera not initialized or invalid device ID!"})");
+                     return;
+                 }
+                 
+                 NETWORK_INFO netInfo;
+                 INT32_T result = GetDeviceNetInfo(camera.getCameraId(), &netInfo);
+                 
+                 if (result == GUIDEIR_OK) {
+                     crow::json::wvalue response;
+                     response["status"] = "success";
+                     response["message"] = "Network info retrieved successfully";
+                     response["serialNum"] = std::string(netInfo.serialNum);
+                     response["macAddr"] = std::string(netInfo.macAddr);
+                     response["ipAddr"] = std::string(netInfo.ipAddr);
+                     response["subNetMask"] = std::string(netInfo.subNetMask);
+                     response["gateway"] = std::string(netInfo.gateway);
+                     response["dnsAddr"] = std::string(netInfo.dnsAddr);
+                     
+                     conn.send_text(response.dump());
+                 } else {
+                     conn.send_text(R"({"status": "error", "message": "Failed to get network info. Error code: )" + std::to_string(result) + R"("})");
+                 }
+             }},
+            // 添加获取设备URL信息命令
+            {"getDeviceURLInfo", [](crow::websocket::connection &conn, const std::string &command) {
+                 auto &camera = VideoCamera::getInstance();
+                 if (!camera.isInit() || camera.getCameraId() <= 0) {
+                     conn.send_text(R"({"status": "error", "message": "Camera not initialized or invalid device ID!"})");
+                     return;
+                 }
+                 
+                 URL_INFO urlInfo;
+                 INT32_T result = GetDeviceURLInfo(camera.getCameraId(), &urlInfo);
+                 
+                 if (result == GUIDEIR_OK) {
+                     crow::json::wvalue response;
+                     response["status"] = "success";
+                     response["message"] = "URL info retrieved successfully";
+                     response["userName"] = std::string(urlInfo.userName);
+                     response["passWord"] = std::string(urlInfo.passWord);
+                     
+                     conn.send_text(response.dump());
+                 } else {
+                     conn.send_text(R"({"status": "error", "message": "Failed to get URL info. Error code: )" + std::to_string(result) + R"("})");
+                 }
+             }},
+            // 添加两点校正命令
+            {"correctByTwoPoint", [](crow::websocket::connection &conn, const std::string &command) {
+                 auto &camera = VideoCamera::getInstance();
+                 crow::json::rvalue msg = crow::json::load(command);
+                 if (!msg || !msg.has("blackbody_first_temp") || !msg.has("blackbody_seconed_temp") || 
+                     !msg.has("blackbody_first_point") || !msg.has("blackbody_seconed_point")) {
+                     conn.send_text(R"({"status": "error", "message": "Missing required fields: blackbody_first_temp, blackbody_seconed_temp, blackbody_first_point, blackbody_seconed_point"})");
+                     return;
+                 }
+                 
+                 TWO_POINT_CORRECT_INFO correctInfo;
+                 correctInfo.blackbody_first_temp = msg["blackbody_first_temp"].d();
+                 correctInfo.blackbody_seconed_temp = msg["blackbody_seconed_temp"].d();
+                 correctInfo.blackbody_first_point.x = msg["blackbody_first_point"]["x"].i();
+                 correctInfo.blackbody_first_point.y = msg["blackbody_first_point"]["y"].i();
+                 correctInfo.blackbody_seconed_point.x = msg["blackbody_seconed_point"]["x"].i();
+                 correctInfo.blackbody_seconed_point.y = msg["blackbody_seconed_point"]["y"].i();
+                 
+                 INT32_T result = CorrectDeviceByTwoPoint(camera.getCameraId(), correctInfo);
+                 
+                 if (result == GUIDEIR_OK) {
+                     conn.send_text(R"({"status": "success", "message": "Two-point correction applied successfully!"})");
+                 } else {
+                     conn.send_text(R"({"status": "error", "message": "Failed to apply two-point correction. Error code: )" + std::to_string(result) + R"("})");
+                 }
              }}};
 
     static void handleCommand(crow::websocket::connection &conn, const std::string &data) {
